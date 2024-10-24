@@ -2,7 +2,7 @@ import {
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
 
 describe("BlockusRelayer", function () {
   // Fixture to reuse the same setup in every test
@@ -147,5 +147,88 @@ describe("BlockusRelayer", function () {
       });
     });
   });
+
+  describe("Meta Transactions", function () {
+    async function deployMockNFTFixture() {
+      const { relayer, owner, otherAccount } = await loadFixture(deployRelayerFixture);
+      
+      // Deploy MockNFT
+      const MockNFT = await hre.ethers.getContractFactory("MockNFT");
+      const mockNFT = await MockNFT.deploy(relayer.target);
+      
+      // Add MockNFT to allowed contracts
+      await relayer.allowContract(mockNFT.target);
+      
+      // Fund relayer
+      await relayer.addFunds({ value: hre.ethers.parseEther("1.0") });
+      
+      return { relayer, mockNFT, owner, otherAccount };
+    }
   
+    it("Should execute meta-transaction to mint NFT", async function () {
+      const { relayer, mockNFT, owner, otherAccount } = await loadFixture(deployMockNFTFixture);
+  
+      const data = mockNFT.interface.encodeFunctionData('mint');
+  
+      // Create the forward request
+      const nonce = await relayer.nonces(otherAccount.address);
+      const latestBlock = await hre.ethers.provider.getBlock('latest');
+      const currentTimestamp = latestBlock!.timestamp;
+
+      // const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour from now
+      const deadline = BigInt(currentTimestamp + 3600);
+  
+      // Create forward request data
+      const forwardRequest = {
+        from: otherAccount.address,
+        to: mockNFT.target,
+        value: 0n,
+        gas: 500000n,
+        nonce: nonce,
+        data: data,
+        deadline: deadline
+      };
+  
+      const domainComponents = await relayer.eip712Domain();
+
+      // Sign the forward request
+      const signature = await otherAccount.signTypedData(
+        // Domain
+        {
+          name: await domainComponents.name, 
+          version: '1',
+          chainId: (await hre.ethers.provider.getNetwork()).chainId,
+          verifyingContract: String(relayer.target)
+        },
+        // Types
+        {
+          ForwardRequest: [
+            { name: 'from', type: 'address' },
+            { name: 'to', type: 'address' },
+            { name: 'value', type: 'uint256' },
+            { name: 'gas', type: 'uint256' },
+            { name: 'nonce', type: 'uint256' },
+            { name: 'deadline', type: 'uint48' },
+            { name: 'data', type: 'bytes' },
+          ]
+        },
+        // Value
+        forwardRequest
+      );
+  
+      // Execute the forward request
+      const requestData = {
+        ...forwardRequest,
+        signature: signature
+      };
+  
+      await expect(relayer.execute(requestData))
+        .to.emit(mockNFT, 'Transfer')
+        .withArgs(hre.ethers.ZeroAddress, otherAccount.address, 0);
+  
+      // Verify NFT ownership
+      expect(await mockNFT.ownerOf(0)).to.equal(otherAccount.address);
+    });
+  
+  });
 });
