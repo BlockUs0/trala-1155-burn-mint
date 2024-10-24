@@ -193,7 +193,7 @@ describe("BlockusRelayer", function () {
       const signature = await otherAccount.signTypedData(
         // Domain
         {
-          name: await domainComponents.name, 
+          name: domainComponents.name, 
           version: '1',
           chainId: (await hre.ethers.provider.getNetwork()).chainId,
           verifyingContract: String(relayer.target)
