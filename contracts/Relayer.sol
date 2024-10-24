@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
  * @dev Extension of ERC2771Forwarder that includes native token funding capabilities and contract allowlist
  */
 contract BlockusRelayer is ERC2771Forwarder, Ownable, Pausable {
-    error InsufficientBalance();
+    error BalanceInsufficient();
     error WithdrawalFailed();
     error ContractNotAllowed(address target);
     error ContractAlreadyAllowed(address target);
@@ -115,7 +115,7 @@ contract BlockusRelayer is ERC2771Forwarder, Ownable, Pausable {
      */
     function withdrawFunds(uint256 amount, address payable receiver) external onlyOwner {
         if (amount > address(this).balance) {
-            revert InsufficientBalance();
+            revert BalanceInsufficient();
         }
 
         emit FundsWithdrawn(receiver, amount);

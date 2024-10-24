@@ -56,4 +56,96 @@ describe("BlockusRelayer", function () {
       expect(await relayer.getAllowedContracts()).to.deep.equal([mockContract]);
     });
   });
+
+  describe("Funding", function () {
+    it("Should accept funds through addFunds", async function () {
+      const { relayer, owner } = await loadFixture(deployRelayerFixture);
+      const fundAmount = hre.ethers.parseEther("1.0");
+      
+      await expect(relayer.addFunds({ value: fundAmount }))
+        .to.emit(relayer, "FundsDeposited")
+        .withArgs(owner.address, fundAmount);
+        
+      expect(await relayer.getBalance()).to.equal(fundAmount);
+    });
+  
+    it("Should accept funds through direct transfer", async function () {
+      const { relayer, owner } = await loadFixture(deployRelayerFixture);
+      const fundAmount = hre.ethers.parseEther("1.0");
+      
+      await expect(owner.sendTransaction({ 
+        to: relayer.target, 
+        value: fundAmount 
+      }))
+        .to.emit(relayer, "FundsDeposited")
+        .withArgs(owner.address, fundAmount);
+        
+      expect(await relayer.getBalance()).to.equal(fundAmount);
+    });
+  
+    describe("Withdrawals", function () {
+      it("Should allow owner to withdraw funds", async function () {
+        const { relayer, owner } = await loadFixture(deployRelayerFixture);
+        const fundAmount = hre.ethers.parseEther("1.0");
+        
+        // First fund the contract
+        await relayer.addFunds({ value: fundAmount });
+        
+        // Then withdraw
+        await expect(relayer.withdrawFunds(fundAmount, owner.address))
+          .to.emit(relayer, "FundsWithdrawn")
+          .withArgs(owner.address, fundAmount);
+          
+        expect(await relayer.getBalance()).to.equal(0);
+      });
+  
+      it("Should revert withdrawal if caller is not owner", async function () {
+        const { relayer, otherAccount } = await loadFixture(deployRelayerFixture);
+        const fundAmount = hre.ethers.parseEther("1.0");
+        
+        // First fund the contract
+        await relayer.addFunds({ value: fundAmount });
+        
+        // Attempt withdrawal from non-owner account
+        await expect(relayer.connect(otherAccount).withdrawFunds(
+          fundAmount, 
+          otherAccount.address
+        )).to.be.revertedWithCustomError(relayer, "OwnableUnauthorizedAccount")
+          .withArgs(otherAccount.address);
+      });
+  
+      it("Should revert withdrawal if amount exceeds balance", async function () {
+        const { relayer, owner } = await loadFixture(deployRelayerFixture);
+        const fundAmount = hre.ethers.parseEther("1.0");
+        const withdrawAmount = hre.ethers.parseEther("2.0");
+        
+        // First fund the contract
+        await relayer.addFunds({ value: fundAmount });
+        
+        // Attempt to withdraw more than balance
+        await expect(relayer.withdrawFunds(
+          withdrawAmount, 
+          owner.address
+        )).to.be.revertedWithCustomError(relayer, "BalanceInsufficient");
+
+      });
+  
+      it("Should track balance correctly after multiple operations", async function () {
+        const { relayer, owner } = await loadFixture(deployRelayerFixture);
+        const fundAmount1 = hre.ethers.parseEther("1.0");
+        const fundAmount2 = hre.ethers.parseEther("0.5");
+        const withdrawAmount = hre.ethers.parseEther("0.3");
+        
+        await relayer.addFunds({ value: fundAmount1 });
+        expect(await relayer.getBalance()).to.equal(fundAmount1);
+        
+        await relayer.addFunds({ value: fundAmount2 });
+        expect(await relayer.getBalance()).to.equal(fundAmount1 + fundAmount2);
+        
+        await relayer.withdrawFunds(withdrawAmount, owner.address);
+        expect(await relayer.getBalance()).to.equal(fundAmount1 + fundAmount2 - withdrawAmount);
+      });
+    });
+  });
+  
 });
