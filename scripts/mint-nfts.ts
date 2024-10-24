@@ -1,22 +1,15 @@
 // npx hardhat run scripts/mint-nfts.ts --network <your-network>
 
 import { ethers } from "hardhat";
-import readline from "readline";
-import { getDeploymentAddress } from '@nomicfoundation/hardhat-ignition';
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
 
 async function main() {
-  // Get signer
-  const [owner] = await ethers.getSigners();
-  console.log("Using signer:", owner.address);
+  // Get signers
+  const [owner, recipient] = await ethers.getSigners();
+  console.log("Owner address:", owner.address);
+  console.log("Recipient address:", recipient.address);
 
-  // Get deployed contract addresses from Ignition
-  const relayerAddress = await getDeploymentAddress('BlockusRelayer', 'default');
-  const mockNFTAddress = await getDeploymentAddress('MockNFT', 'default');
+  const relayerAddress = '0x25711DC423660745109C689268f9107dE1b60791';
+  const mockNFTAddress = '0x14aF69C94067c72F7B7ccc74E81a6c0FdD7b20Ad';
 
   console.log("Relayer deployed at:", relayerAddress);
   console.log("MockNFT deployed at:", mockNFTAddress);
@@ -42,86 +35,57 @@ async function main() {
     console.log("Relayer funded");
   }
 
-  // Function to mint NFT
-  async function mintNFT(toAddress: string) {
-    const data = mockNFT.interface.encodeFunctionData('mint');
-    
-    // Create the forward request
-    const nonce = await relayer.nonces(toAddress);
-    const latestBlock = await ethers.provider.getBlock('latest');
-    const deadline = BigInt(latestBlock!.timestamp + 3600); // 1 hour from now
+  // Mint NFT
+  const data = mockNFT.interface.encodeFunctionData('mint');
+  
+  // Create the forward request
+  const nonce = await relayer.nonces(recipient.address);
+  const latestBlock = await ethers.provider.getBlock('latest');
+  const deadline = BigInt(latestBlock!.timestamp + 3600); // 1 hour from now
 
-    const forwardRequest = {
-      from: toAddress,
-      to: mockNFTAddress,
-      value: 0n,
-      gas: 500000n,
-      nonce: nonce,
-      data: data,
-      deadline: deadline
-    };
-
-    const domainData = await relayer.eip712Domain();
-    const signer = await ethers.getSigner(toAddress);
-
-    // Sign the forward request
-    const signature = await signer.signTypedData(
-      {
-        name: domainData.name,
-        version: '1',
-        chainId: (await ethers.provider.getNetwork()).chainId,
-        verifyingContract: relayerAddress
-      },
-      {
-        ForwardRequest: [
-          { name: 'from', type: 'address' },
-          { name: 'to', type: 'address' },
-          { name: 'value', type: 'uint256' },
-          { name: 'gas', type: 'uint256' },
-          { name: 'nonce', type: 'uint256' },
-          { name: 'deadline', type: 'uint48' },
-          { name: 'data', type: 'bytes' },
-        ]
-      },
-      forwardRequest
-    );
-
-    const requestData = {
-      ...forwardRequest,
-      signature: signature
-    };
-
-    console.log(`Minting NFT for ${toAddress}...`);
-    const tx = await relayer.execute(requestData);
-    await tx.wait();
-    console.log(`NFT minted! Transaction: ${tx.hash}`);
-
-    // Get token ID and display ownership
-    const totalSupply = await mockNFT.totalSupply();
-    const tokenId = totalSupply - 1n;
-    const owner = await mockNFT.ownerOf(tokenId);
-    console.log(`Token #${tokenId} minted and owned by ${owner}`);
-  }
-
-  // Interactive prompt
-  const promptMint = () => {
-    rl.question("Enter address to mint NFT for (or 'exit' to quit): ", async (answer) => {
-      if (answer.toLowerCase() === 'exit') {
-        rl.close();
-        return;
-      }
-
-      try {
-        await mintNFT(answer);
-        promptMint();
-      } catch (error) {
-        console.error("Error minting NFT:", error);
-        promptMint();
-      }
-    });
+  const forwardRequest = {
+    from: recipient.address, // Using recipient address as the 'from' address
+    to: mockNFTAddress,
+    value: 0n,
+    gas: 500000n,
+    nonce: nonce,
+    data: data,
+    deadline: deadline
   };
 
-  promptMint();
+  const domainData = await relayer.eip712Domain();
+
+  // Sign the forward request with the recipient's signer
+  const signature = await recipient.signTypedData(
+    {
+      name: domainData.name,
+      version: '1',
+      chainId: (await ethers.provider.getNetwork()).chainId,
+      verifyingContract: relayerAddress
+    },
+    {
+      ForwardRequest: [
+        { name: 'from', type: 'address' },
+        { name: 'to', type: 'address' },
+        { name: 'value', type: 'uint256' },
+        { name: 'gas', type: 'uint256' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'deadline', type: 'uint48' },
+        { name: 'data', type: 'bytes' },
+      ]
+    },
+    forwardRequest
+  );
+
+  const requestData = {
+    ...forwardRequest,
+    signature: signature
+  };
+
+  console.log(`Minting NFT for ${recipient.address}...`);
+  const tx = await relayer.execute(requestData);
+  await tx.wait();
+  console.log(`NFT minted! Transaction: ${tx.hash}`);
 }
 
 main().catch((error) => {
