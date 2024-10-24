@@ -1,6 +1,8 @@
+// npx hardhat run scripts/mint-nfts.ts --network <your-network>
+
 import { ethers } from "hardhat";
 import readline from "readline";
-import { getDeploymentAddress } from '@nomicfoundation/hardhat-ignition/utils';
+import { getDeploymentAddress } from '@nomicfoundation/hardhat-ignition';
 
 const rl = readline.createInterface({
   input: process.stdin,
