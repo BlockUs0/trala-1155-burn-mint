@@ -16,7 +16,11 @@ const config: HardhatUserConfig = {
       chainId: 11155111,
     }
   },
-
+  etherscan: {
+    apiKey: {
+      sepolia: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8'
+    }
+  }
 };
 
 export default config;
