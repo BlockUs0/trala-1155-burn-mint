@@ -1,10 +1,9 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 const RelayerModule = buildModule("RelayerModule", (m) => {
-  // Default parameters that can be overridden during deployment
   const name = m.getParameter("name", "BlockusRelayer");
-  const initialOwner = m.getParameter("initialOwner", "");  // This should be provided during deployment
-  const allowedContracts = m.getParameter("allowedContracts", [] as string[]); // Empty array by default
+  const initialOwner = m.getAccount(0);
+  const allowedContracts = m.getParameter("allowedContracts", [] as string[]);
 
   const relayer = m.contract("BlockusRelayer", [
     name,
