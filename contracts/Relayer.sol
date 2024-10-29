@@ -7,17 +7,13 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title BlockusRelayer
- * @dev Extension of ERC2771Forwarder that includes native token funding capabilities and contract allowlist
+ * @dev Extension of ERC2771Forwarder that includes contract allowlist
  */
 contract BlockusRelayer is ERC2771Forwarder, Ownable, Pausable {
-    error BalanceInsufficient();
-    error WithdrawalFailed();
     error ContractNotAllowed(address target);
     error ContractAlreadyAllowed(address target);
     error ContractNotInAllowlist(address target);
     
-    event FundsDeposited(address indexed depositor, uint256 amount);
-    event FundsWithdrawn(address indexed receiver, uint256 amount);
     event ContractAllowed(address indexed target);
     event ContractRemoved(address indexed target);
     
@@ -104,36 +100,6 @@ contract BlockusRelayer is ERC2771Forwarder, Ownable, Pausable {
     }
 
     /**
-     * @dev Allows anyone to fund the forwarder contract
-     */
-    function addFunds() external payable {
-        emit FundsDeposited(msg.sender, msg.value);
-    }
-
-    /**
-     * @dev Allows the owner to withdraw funds from the contract
-     */
-    function withdrawFunds(uint256 amount, address payable receiver) external onlyOwner {
-        if (amount > address(this).balance) {
-            revert BalanceInsufficient();
-        }
-
-        emit FundsWithdrawn(receiver, amount);
-        
-        (bool success, ) = receiver.call{value: amount}("");
-        if (!success) {
-            revert WithdrawalFailed();
-        }
-    }
-
-    /**
-     * @dev Returns the current balance of the forwarder
-     */
-    function getBalance() external view returns (uint256) {
-        return address(this).balance;
-    }
-
-    /**
      * @dev Override execute to check allowlist
      */
     function execute(
@@ -164,9 +130,5 @@ contract BlockusRelayer is ERC2771Forwarder, Ownable, Pausable {
 
     function unpause() external onlyOwner {
         _unpause();
-    }
-
-    receive() external payable {
-        emit FundsDeposited(msg.sender, msg.value);
     }
 }
