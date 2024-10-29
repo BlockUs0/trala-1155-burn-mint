@@ -8,16 +8,15 @@ describe("BlockusRelayer", function () {
   // Fixture to reuse the same setup in every test
   async function deployRelayerFixture() {
     const name = "BlockusRelayer";
-    const allowedContracts: string[] = [];
 
     // Get signers
     const [owner, otherAccount] = await hre.ethers.getSigners();
 
     // Deploy the contract
     const Relayer = await hre.ethers.getContractFactory("BlockusRelayer");
-    const relayer = await Relayer.deploy(name, owner.address, allowedContracts);
+    const relayer = await Relayer.deploy(name, owner.address);
 
-    return { relayer, name, allowedContracts, owner, otherAccount };
+    return { relayer, name, owner, otherAccount };
   }
 
   describe("Deployment", function () {
@@ -26,29 +25,9 @@ describe("BlockusRelayer", function () {
       expect(await relayer.owner()).to.equal(owner.address);
     });
 
-    it("Should start with empty allowed contracts list", async function () {
-      const { relayer } = await loadFixture(deployRelayerFixture);
-      expect(await relayer.getAllowedContracts()).to.deep.equal([]);
-    });
-
     it("Should start unpaused", async function () {
       const { relayer } = await loadFixture(deployRelayerFixture);
       expect(await relayer.paused()).to.be.false;
-    });
-
-    it("Should deploy with initial allowed contracts if provided", async function () {
-      // Deploy with an allowed contract
-      const [owner] = await hre.ethers.getSigners();
-      const mockContract = "0x1234567890123456789012345678901234567890";
-      const Relayer = await hre.ethers.getContractFactory("BlockusRelayer");
-      const relayer = await Relayer.deploy(
-        "BlockusRelayer",
-        owner.address,
-        [mockContract]
-      );
-
-      expect(await relayer.allowedContracts(mockContract)).to.be.true;
-      expect(await relayer.getAllowedContracts()).to.deep.equal([mockContract]);
     });
   });
 
@@ -59,9 +38,6 @@ describe("BlockusRelayer", function () {
       // Deploy MockNFT
       const MockNFT = await hre.ethers.getContractFactory("MockNFT");
       const mockNFT = await MockNFT.deploy(relayer.target);
-      
-      // Add MockNFT to allowed contracts
-      await relayer.allowContract(mockNFT.target);
       
       return { relayer, mockNFT, owner, otherAccount };
     }
@@ -127,63 +103,6 @@ describe("BlockusRelayer", function () {
   
       // Verify NFT ownership
       expect(await mockNFT.ownerOf(0)).to.equal(otherAccount.address);
-    });
-
-    it("Should revert execution for non-allowed contract", async function () {
-      const { relayer, owner, otherAccount } = await loadFixture(deployMockNFTFixture);
-      
-      // Deploy another MockNFT but don't add to allowed list
-      const MockNFT = await hre.ethers.getContractFactory("MockNFT");
-      const unauthorizedNFT = await MockNFT.deploy(relayer.target);
-  
-      const data = unauthorizedNFT.interface.encodeFunctionData('mint');
-  
-      const nonce = await relayer.nonces(otherAccount.address);
-      const latestBlock = await hre.ethers.provider.getBlock('latest');
-      const currentTimestamp = latestBlock!.timestamp;
-      const deadline = BigInt(currentTimestamp + 3600);
-  
-      const forwardRequest = {
-        from: otherAccount.address,
-        to: unauthorizedNFT.target,
-        value: 0n,
-        gas: 500000n,
-        nonce: nonce,
-        data: data,
-        deadline: deadline
-      };
-
-      const domainComponents = await relayer.eip712Domain();
-  
-      const signature = await otherAccount.signTypedData(
-        {
-          name: domainComponents.name,
-          version: '1',
-          chainId: (await hre.ethers.provider.getNetwork()).chainId,
-          verifyingContract: String(relayer.target)
-        },
-        {
-          ForwardRequest: [
-            { name: 'from', type: 'address' },
-            { name: 'to', type: 'address' },
-            { name: 'value', type: 'uint256' },
-            { name: 'gas', type: 'uint256' },
-            { name: 'nonce', type: 'uint256' },
-            { name: 'deadline', type: 'uint48' },
-            { name: 'data', type: 'bytes' },
-          ]
-        },
-        forwardRequest
-      );
-  
-      const requestData = {
-        ...forwardRequest,
-        signature: signature
-      };
-  
-      await expect(relayer.execute(requestData))
-        .to.be.revertedWithCustomError(relayer, "ContractNotAllowed")
-        .withArgs(unauthorizedNFT.target);
     });
   });
 });
