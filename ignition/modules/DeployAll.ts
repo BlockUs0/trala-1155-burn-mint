@@ -12,11 +12,8 @@ const DeployAllModule = buildModule("DeployAllModule", (m) => {
   ]);
 
   const mockNFT = m.contract("MockNFT", [relayer]);
-
   m.call(relayer, "allowContract", [mockNFT]);
 
-  const fundingAmount = ethers.parseEther("0.01");
-  m.call(relayer, "addFunds", [], { value: fundingAmount });
 
   return {
     relayer,
