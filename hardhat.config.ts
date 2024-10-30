@@ -14,6 +14,11 @@ const config: HardhatUserConfig = {
       url: process.env.SEPOLIA_RPC_URL!,
       accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
       chainId: 11155111,
+    },
+    b3: {
+      url: 'https://mainnet-rpc.b3.fun',
+      accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
+      chainId: 8333,
     }
   },
   etherscan: {
