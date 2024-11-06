@@ -19,12 +19,25 @@ const config: HardhatUserConfig = {
       url: 'https://mainnet-rpc.b3.fun',
       accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
       chainId: 8333,
+
     }
   },
   etherscan: {
     apiKey: {
-      sepolia: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8'
-    }
+      sepolia: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
+      b3:'as'
+    },
+    customChains: [
+      {
+        network: "b3",
+        chainId: 8333,
+        urls: {
+          apiURL: "https://explorer.b3.fun/api",
+          browserURL: "https://explorer.b3.fun",
+        },
+      },
+    ]
+
   }
 };
 
