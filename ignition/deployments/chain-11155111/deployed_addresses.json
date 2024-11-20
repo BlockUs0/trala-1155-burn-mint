@@ -1,5 +1,7 @@
 {
   "DeployAllModule#BlockusRelayer": "0x25711DC423660745109C689268f9107dE1b60791",
   "DeployAllModule#MockNFT": "0x14aF69C94067c72F7B7ccc74E81a6c0FdD7b20Ad",
-  "RelayerModule#BlockusRelayer": "0x1669DD009eAA330746a9E3297a95CE0aaA79825b"
+  "RelayerModule#BlockusRelayer": "0x1669DD009eAA330746a9E3297a95CE0aaA79825b",
+  "TokenModule#Token_GLHF_Implementation": "0xf53198CB24fD14716F3495d142c0212638B5A835",
+  "TokenModule#Token_GLHF_Proxy": "0x1b91A07a9CBF02fE400a72752E1850353A7CFF91"
 }
