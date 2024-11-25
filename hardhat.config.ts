@@ -10,6 +10,11 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
     },
+    mainnet: {
+      url: 'https://mainnet.infura.io/v3/8ef07dfe7367497f9b7d4a7ad2437ec8',
+      accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
+      chainId: 1,
+    },
     sepolia: {
       url: process.env.SEPOLIA_RPC_URL!,
       accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
@@ -24,6 +29,7 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
+      mainnet: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
       sepolia: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
       b3:'as'
     },

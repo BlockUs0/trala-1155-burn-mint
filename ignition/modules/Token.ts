@@ -2,9 +2,9 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 const TokenModule = buildModule("TokenModule", (m) => {
     const tickers = [
-        { name: "Good Luck Have Fun !", symbol: "GLHF" },
-        // { name: "KOI Token", symbol: "KOIB" },
-        // { name: "Shark Token", symbol: "SHRK" }
+        { name: "Good Luck Have Fun!", symbol: "GLHF" },
+        { name: "KOI Token", symbol: "KOIB" },
+        { name: "Shark Token", symbol: "SHRK" }
     ];
 
     const tokens: Record<string, any> = {};
