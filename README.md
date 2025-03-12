@@ -1,22 +1,28 @@
 # Custom Meta-Transaction Relayer
 
-This project implements a custom meta-transaction relayer system with an example NFT contract to demonstrate gasless transactions. The system consists of a relayer contract that forwards transactions and a mock NFT contract that supports meta-transactions.
+Burn-to-Mint System Overview
+Core Objective
+The project implements a cross-chain "burn-to-mint" mechanism where users can burn NFTs on one blockchain and mint new tokens on Ethereum L1, using cryptographic proof of the burn.
+Technical Requirements
+Backend System
 
-## Components
+Burn Verification System:
 
-### BlockusRelayer (Relayer.sol)
-- Custom relayer contract that forwards meta-transactions
-- Supports single and batch transaction execution
-- Maintains an allowlist of contracts that can use the relayer
-- Includes fund management and pause functionality
-- Owner can add/remove allowed contracts and manage funds
+Already implemented system that tracks and verifies when users burn NFTs on other chains
+Validates burns and stores them in a database with a verification status
 
-### MockNFT (MockNFT.sol) 
-- Example ERC721 contract that supports meta-transactions
-- Uses ERC2771Context for trusted forwarder integration
-- Simple minting functionality for testing
 
-## Development Setup
+EIP-712 Signature Generation:
+
+Need to add functionality that generates EIP-712 typed data signatures
+These signatures serve as cryptographic proof that specific burns occurred
+Signatures will enable users to mint new tokens on Ethereum
+
+
+Asynchronous Processing:
+
+System needs to handle multiple simultaneous signature requests
+Using burn proof IDs instead of sequential nonces for better asynchronous support
 
 1. Install dependencies:
 ```bash
