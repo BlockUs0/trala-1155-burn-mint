@@ -1,0 +1,20 @@
+modules = ["nodejs-20"]
+run = "node index.js"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "node index.js"]
+
+[workflows]
+runButton = "Run Tests"
+
+[[workflows.workflow]]
+name = "Run Tests"
+author = 36697068
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm hardhat test"
