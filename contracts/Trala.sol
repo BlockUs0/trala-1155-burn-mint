@@ -1,23 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
 
 /**
  * @title TralaNFT
  * @dev Implementation of the Trala Platform NFT system with multiple token grades
  * and configurable parameters for each grade.
  */
-contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pausable, ReentrancyGuard {ee
-    using Counters for Counters.Counter;
+contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pausable, ReentrancyGuard {
 
     // Role definitions
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -45,6 +42,9 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
     // Mapping to track used signatures
     mapping(bytes => bool) private _usedSignatures;
 
+    // Mapping to track nonces per address for signature verification
+    mapping(address => uint256) private _nonces;
+
     // Events
     event TokenConfigured(uint256 indexed tokenId, string name, uint256 maxSupply, uint256 price, bool allowlistRequired, bool active, bool soulbound);
     event TokenMinted(address indexed to, uint256 indexed tokenId, uint256 amount);
@@ -69,9 +69,9 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
         symbol = _symbol;
 
         // Setup roles
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(ADMIN_ROLE, _initialAdmin);
-        _setupRole(SIGNER_ROLE, _initialSigner);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ADMIN_ROLE, _initialAdmin);
+        _grantRole(SIGNER_ROLE, _initialSigner);
     }
 
     /**
@@ -118,6 +118,21 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
      * @param amount Amount to mint
      * @param signature Signature for allowlist authorization (can be empty for public minting)
      */
+    /**
+     * @dev Returns the current nonce for an address
+     * @param owner Address to get nonce for
+     */
+    function nonces(address owner) public view returns (uint256) {
+        return _nonces[owner];
+    }
+
+    /**
+     * @dev Unified mint function that handles both public and allowlist minting
+     * @param to Recipient address
+     * @param tokenId Token ID to mint
+     * @param amount Amount to mint
+     * @param signature Signature for allowlist authorization (can be empty for public minting)
+     */
     function mint(
         address to,
         uint256 tokenId,
@@ -138,7 +153,6 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
         // If allowlist is required, verify signature
         if (config.allowlistRequired) {
             require(signature.length > 0, "Signature required for allowlist");
-            require(!_usedSignatures[signature], "Signature already used");
 
             // Create message hash that was signed
             bytes32 messageHash = keccak256(
@@ -147,17 +161,19 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
                     to,
                     tokenId,
                     amount,
+                    _nonces[msg.sender],
                     block.chainid,
                     address(this)
                 )
             );
 
             // Verify the signature came from a valid signer
-            address signer = ECDSA.recover(ECDSA.toEthSignedMessageHash(messageHash), signature);
+            bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+            address signer = ECDSA.recover(ethSignedMessageHash, signature);
             require(hasRole(SIGNER_ROLE, signer), "Invalid signature");
 
-            // Mark signature as used
-            _usedSignatures[signature] = true;
+            // Increment nonce to prevent signature reuse
+            _nonces[msg.sender]++;
         }
 
         // Mint tokens
@@ -167,18 +183,14 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
     }
 
     /**
-     * @dev Override _beforeTokenTransfer to implement soulbound functionality
+     * @dev Override _update to implement ERC1155Supply and soulbound functionality
      */
-    function _beforeTokenTransfer(
-        address operator,
+    function _update(
         address from,
         address to,
         uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) internal override(ERC1155, ERC1155Supply) {
-        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-
+        uint256[] memory values
+    ) internal virtual override(ERC1155, ERC1155Supply) {
         // Skip checks for minting (from = address(0)) and burning (to = address(0))
         if (from != address(0) && to != address(0)) {
             for (uint256 i = 0; i < ids.length; i++) {
@@ -188,6 +200,8 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
                 }
             }
         }
+
+        super._update(from, to, ids, values);
     }
 
     /**
