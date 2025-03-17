@@ -15,6 +15,15 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * and configurable parameters for each grade.
  */
 contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pausable, ReentrancyGuard {
+    // Custom errors
+    error TokenNotActive(uint256 tokenId);
+    error InsufficientPayment(uint256 required, uint256 sent);
+    error ExceedsMaxSupply(uint256 tokenId, uint256 maxSupply, uint256 currentSupply, uint256 requestedAmount);
+    error SignatureRequired();
+    error InvalidSignature();
+    error TokenIsSoulbound(uint256 tokenId);
+    error NoFundsToWithdraw();
+    error WithdrawalFailed();
 
     // Role definitions
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -114,13 +123,6 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
     }
 
     /**
-     * @dev Unified mint function that handles both public and allowlist minting
-     * @param to Recipient address
-     * @param tokenId Token ID to mint
-     * @param amount Amount to mint
-     * @param signature Signature for allowlist authorization (can be empty for public minting)
-     */
-    /**
      * @dev Returns the current nonce for an address
      * @param owner Address to get nonce for
      */
@@ -144,17 +146,27 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
         TokenConfig memory config = tokenConfigs[tokenId];
 
         // Validations
-        require(config.active, "Token is not active");
-        require(msg.value >= config.price * amount, "Insufficient payment");
+        if (!config.active) {
+            revert TokenNotActive(tokenId);
+        }
+
+        if (msg.value < config.price * amount) {
+            revert InsufficientPayment(config.price * amount, msg.value);
+        }
 
         // Check max supply
         if (config.maxSupply > 0) {
-            require(totalSupply(tokenId) + amount <= config.maxSupply, "Exceeds max supply");
+            uint256 currentSupply = totalSupply(tokenId);
+            if (currentSupply + amount > config.maxSupply) {
+                revert ExceedsMaxSupply(tokenId, config.maxSupply, currentSupply, amount);
+            }
         }
 
         // If allowlist is required, verify signature
         if (config.allowlistRequired) {
-            require(signature.length > 0, "Signature required for allowlist");
+            if (signature.length == 0) {
+                revert SignatureRequired();
+            }
 
             // Create message hash that was signed
             bytes32 messageHash = keccak256(
@@ -172,7 +184,9 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
             // Verify the signature came from a valid signer
             bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
             address signer = ECDSA.recover(ethSignedMessageHash, signature);
-            require(hasRole(SIGNER_ROLE, signer), "Invalid signature");
+            if (!hasRole(SIGNER_ROLE, signer)) {
+                revert InvalidSignature();
+            }
 
             // Increment nonce to prevent signature reuse
             _nonces[msg.sender]++;
@@ -198,7 +212,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
             for (uint256 i = 0; i < ids.length; i++) {
                 // Check if the token is soulbound
                 if (tokenConfigs[ids[i]].soulbound) {
-                    revert("Token is soulbound");
+                    revert TokenIsSoulbound(ids[i]);
                 }
             }
         }
@@ -268,10 +282,14 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
      */
     function withdraw() external onlyRole(TREASURY_ROLE) {
         uint256 balance = address(this).balance;
-        require(balance > 0, "No funds to withdraw");
+        if (balance == 0) {
+            revert NoFundsToWithdraw();
+        }
 
         (bool success, ) = payable(msg.sender).call{value: balance}("");
-        require(success, "Withdrawal failed");
+        if (!success) {
+            revert WithdrawalFailed();
+        }
 
         emit WithdrawFunds(msg.sender, balance);
     }
