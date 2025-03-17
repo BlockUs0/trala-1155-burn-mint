@@ -143,5 +143,65 @@ describe("TralaNFT", function () {
       
       expect(await nft.paused()).to.be.false;
     });
+
+    it("Should allow treasury role to withdraw funds", async function () {
+      const { nft, owner, otherAccount } = await loadFixture(deployTralaNFTFixture);
+      
+      // Configure and mint a token to generate funds
+      const tokenId = 1;
+      await nft.connect(admin).configureToken(
+        tokenId,
+        "Test Token",
+        100n,
+        ethers.parseEther("0.1"),
+        false,
+        true,
+        false
+      );
+
+      // Mint token to generate funds
+      await nft.connect(otherAccount).mint(
+        otherAccount.address,
+        tokenId,
+        1,
+        "0x",
+        { value: ethers.parseEther("0.1") }
+      );
+
+      const initialBalance = await ethers.provider.getBalance(owner.address);
+      await nft.connect(owner).withdraw();
+      const finalBalance = await ethers.provider.getBalance(owner.address);
+      
+      expect(finalBalance).to.be.gt(initialBalance);
+    });
+
+    it("Should not allow non-treasury role to withdraw funds", async function () {
+      const { nft, admin, otherAccount } = await loadFixture(deployTralaNFTFixture);
+      
+      // Configure and mint a token to generate funds
+      const tokenId = 1;
+      await nft.connect(admin).configureToken(
+        tokenId,
+        "Test Token",
+        100n,
+        ethers.parseEther("0.1"),
+        false,
+        true,
+        false
+      );
+
+      // Mint token to generate funds
+      await nft.connect(otherAccount).mint(
+        otherAccount.address,
+        tokenId,
+        1,
+        "0x",
+        { value: ethers.parseEther("0.1") }
+      );
+
+      // Admin should not be able to withdraw
+      await expect(nft.connect(admin).withdraw())
+        .to.be.revertedWithCustomError(nft, "AccessControlUnauthorizedAccount");
+    });
   });
 });
