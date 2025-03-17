@@ -145,7 +145,7 @@ describe("TralaNFT", function () {
     });
 
     it("Should allow treasury role to withdraw funds", async function () {
-      const { nft, owner, otherAccount } = await loadFixture(deployTralaNFTFixture);
+      const { nft, owner, otherAccount, admin } = await loadFixture(deployTralaNFTFixture);
       
       // Configure and mint a token to generate funds
       const tokenId = 1;
