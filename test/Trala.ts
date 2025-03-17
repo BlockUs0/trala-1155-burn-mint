@@ -42,7 +42,10 @@ describe("TralaNFT", function () {
       const ADMIN_ROLE = await nft.ADMIN_ROLE();
       const SIGNER_ROLE = await nft.SIGNER_ROLE();
 
+      const TREASURY_ROLE = await nft.TREASURY_ROLE();
+      
       expect(await nft.hasRole(DEFAULT_ADMIN_ROLE, owner.address)).to.be.true;
+      expect(await nft.hasRole(TREASURY_ROLE, owner.address)).to.be.true;
       expect(await nft.hasRole(ADMIN_ROLE, admin.address)).to.be.true;
       expect(await nft.hasRole(SIGNER_ROLE, signer.address)).to.be.true;
     });

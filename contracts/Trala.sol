@@ -19,6 +19,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
     // Role definitions
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
+    bytes32 public constant TREASURY_ROLE = keccak256("TREASURY_ROLE");
 
     string public name;
     string public symbol;
@@ -70,6 +71,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
 
         // Setup roles
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(TREASURY_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, _initialAdmin);
         _grantRole(SIGNER_ROLE, _initialSigner);
     }
@@ -264,7 +266,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
     /**
      * @dev Withdraws funds to the contract owner
      */
-    function withdraw() external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function withdraw() external onlyRole(TREASURY_ROLE) {
         uint256 balance = address(this).balance;
         require(balance > 0, "No funds to withdraw");
 
