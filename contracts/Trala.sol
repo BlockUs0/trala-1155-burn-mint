@@ -1,0 +1,274 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+
+/**
+ * @title TralaNFT
+ * @dev Implementation of the Trala Platform NFT system with multiple token grades
+ * and configurable parameters for each grade.
+ */
+contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pausable, ReentrancyGuard {ee
+    using Counters for Counters.Counter;
+
+    // Role definitions
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
+
+    string public name;
+    string public symbol;
+
+    // Token configuration
+    struct TokenConfig {
+        string name;        // Grade name (A, S, SS, SSS, B, C)
+        uint256 maxSupply;  // Maximum supply (0 = unlimited)
+        uint256 price;      // Price in wei
+        bool allowlistRequired; // Whether allowlist is required for minting
+        bool active;        // Whether token is currently mintable
+        bool soulbound;     // Whether token is soulbound (non-transferable)
+    }
+
+    // Mapping from token ID to its configuration
+    mapping(uint256 => TokenConfig) public tokenConfigs;
+
+    // Array to track all created token IDs
+    uint256[] private _tokenIds;
+
+    // Mapping to track used signatures
+    mapping(bytes => bool) private _usedSignatures;
+
+    // Events
+    event TokenConfigured(uint256 indexed tokenId, string name, uint256 maxSupply, uint256 price, bool allowlistRequired, bool active, bool soulbound);
+    event TokenMinted(address indexed to, uint256 indexed tokenId, uint256 amount);
+    event WithdrawFunds(address indexed to, uint256 amount);
+
+    /**
+     * @dev Constructor
+     * @param _name Collection name
+     * @param _symbol Collection symbol
+     * @param _uri Base URI for token metadata
+     * @param _initialAdmin Address to be granted admin role
+     * @param _initialSigner Address to be granted signer role
+     */
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        string memory _uri,
+        address _initialAdmin,
+        address _initialSigner
+    ) ERC1155(_uri) {
+        name = _name;
+        symbol = _symbol;
+
+        // Setup roles
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(ADMIN_ROLE, _initialAdmin);
+        _setupRole(SIGNER_ROLE, _initialSigner);
+    }
+
+    /**
+     * @dev Creates a new token type with specified configuration
+     * @param tokenId ID of the token to configure
+     * @param _name Name of the token grade
+     * @param _maxSupply Maximum supply (0 for unlimited)
+     * @param _price Price in wei
+     * @param _allowlistRequired Whether allowlist is required
+     * @param _active Whether the token is active for minting
+     * @param _soulbound Whether the token is non-transferable
+     */
+    function configureToken(
+        uint256 tokenId,
+        string memory _name,
+        uint256 _maxSupply,
+        uint256 _price,
+        bool _allowlistRequired,
+        bool _active,
+        bool _soulbound
+    ) external onlyRole(ADMIN_ROLE) {
+        // Check if this is a new token ID
+        if (bytes(tokenConfigs[tokenId].name).length == 0) {
+            _tokenIds.push(tokenId);
+        }
+
+        // Set the token configuration
+        tokenConfigs[tokenId] = TokenConfig({
+            name: _name,
+            maxSupply: _maxSupply,
+            price: _price,
+            allowlistRequired: _allowlistRequired,
+            active: _active,
+            soulbound: _soulbound
+        });
+
+        emit TokenConfigured(tokenId, _name, _maxSupply, _price, _allowlistRequired, _active, _soulbound);
+    }
+
+    /**
+     * @dev Unified mint function that handles both public and allowlist minting
+     * @param to Recipient address
+     * @param tokenId Token ID to mint
+     * @param amount Amount to mint
+     * @param signature Signature for allowlist authorization (can be empty for public minting)
+     */
+    function mint(
+        address to,
+        uint256 tokenId,
+        uint256 amount,
+        bytes calldata signature
+    ) external payable nonReentrant whenNotPaused {
+        TokenConfig memory config = tokenConfigs[tokenId];
+
+        // Validations
+        require(config.active, "Token is not active");
+        require(msg.value >= config.price * amount, "Insufficient payment");
+
+        // Check max supply
+        if (config.maxSupply > 0) {
+            require(totalSupply(tokenId) + amount <= config.maxSupply, "Exceeds max supply");
+        }
+
+        // If allowlist is required, verify signature
+        if (config.allowlistRequired) {
+            require(signature.length > 0, "Signature required for allowlist");
+            require(!_usedSignatures[signature], "Signature already used");
+
+            // Create message hash that was signed
+            bytes32 messageHash = keccak256(
+                abi.encodePacked(
+                    msg.sender,
+                    to,
+                    tokenId,
+                    amount,
+                    block.chainid,
+                    address(this)
+                )
+            );
+
+            // Verify the signature came from a valid signer
+            address signer = ECDSA.recover(ECDSA.toEthSignedMessageHash(messageHash), signature);
+            require(hasRole(SIGNER_ROLE, signer), "Invalid signature");
+
+            // Mark signature as used
+            _usedSignatures[signature] = true;
+        }
+
+        // Mint tokens
+        _mint(to, tokenId, amount, "");
+
+        emit TokenMinted(to, tokenId, amount);
+    }
+
+    /**
+     * @dev Override _beforeTokenTransfer to implement soulbound functionality
+     */
+    function _beforeTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal override(ERC1155, ERC1155Supply) {
+        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+
+        // Skip checks for minting (from = address(0)) and burning (to = address(0))
+        if (from != address(0) && to != address(0)) {
+            for (uint256 i = 0; i < ids.length; i++) {
+                // Check if the token is soulbound
+                if (tokenConfigs[ids[i]].soulbound) {
+                    revert("Token is soulbound");
+                }
+            }
+        }
+    }
+
+    /**
+     * @dev Sets the base URI for all token types
+     * @param newuri New base URI
+     */
+    function setURI(string memory newuri) external onlyRole(ADMIN_ROLE) {
+        _setURI(newuri);
+    }
+
+    /**
+     * @dev Sets the active status of a token
+     * @param tokenId Token ID
+     * @param active Whether the token is active
+     */
+    function setTokenActive(uint256 tokenId, bool active) external onlyRole(ADMIN_ROLE) {
+        tokenConfigs[tokenId].active = active;
+    }
+
+    /**
+     * @dev Sets whether a token requires allowlist
+     * @param tokenId Token ID
+     * @param required Whether allowlist is required
+     */
+    function setAllowlistRequired(uint256 tokenId, bool required) external onlyRole(ADMIN_ROLE) {
+        tokenConfigs[tokenId].allowlistRequired = required;
+    }
+
+    /**
+     * @dev Updates the price of a token
+     * @param tokenId Token ID
+     * @param price New price in wei
+     */
+    function setTokenPrice(uint256 tokenId, uint256 price) external onlyRole(ADMIN_ROLE) {
+        tokenConfigs[tokenId].price = price;
+    }
+
+    /**
+     * @dev Gets all token IDs
+     * @return Array of token IDs
+     */
+    function getAllTokenIds() external view returns (uint256[] memory) {
+        return _tokenIds;
+    }
+
+    /**
+     * @dev Pauses all token minting
+     */
+    function pause() external onlyRole(ADMIN_ROLE) {
+        _pause();
+    }
+
+    /**
+     * @dev Unpauses token minting
+     */
+    function unpause() external onlyRole(ADMIN_ROLE) {
+        _unpause();
+    }
+
+    /**
+     * @dev Withdraws funds to the contract owner
+     */
+    function withdraw() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No funds to withdraw");
+
+        (bool success, ) = payable(msg.sender).call{value: balance}("");
+        require(success, "Withdrawal failed");
+
+        emit WithdrawFunds(msg.sender, balance);
+    }
+
+    /**
+     * @dev Required override to support ERC1155Supply
+     */
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC1155, AccessControl)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+}

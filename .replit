@@ -17,4 +17,4 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pnpm hardhat test"
+args = "pnpm hardhat test --network hardhat"
