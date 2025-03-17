@@ -20,7 +20,7 @@ describe("TralaNFT", function () {
       name,
       symbol,
       baseURI,
-      admin.address,
+      owner.address, // owner will be treasury
       signer.address
     );
 
@@ -43,8 +43,8 @@ describe("TralaNFT", function () {
       const TREASURY_ROLE = await nft.TREASURY_ROLE();
 
       expect(await nft.hasRole(DEFAULT_ADMIN_ROLE, owner.address)).to.be.true;
+      expect(await nft.hasRole(ADMIN_ROLE, owner.address)).to.be.true;
       expect(await nft.hasRole(TREASURY_ROLE, owner.address)).to.be.true;
-      expect(await nft.hasRole(ADMIN_ROLE, admin.address)).to.be.true;
       expect(await nft.hasRole(SIGNER_ROLE, signer.address)).to.be.true;
     });
 

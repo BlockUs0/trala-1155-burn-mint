@@ -72,7 +72,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
         string memory _name,
         string memory _symbol,
         string memory _uri,
-        address _initialAdmin,
+        address _initialTreasury,
         address _initialSigner
     ) ERC1155(_uri) {
         name = _name;
@@ -80,8 +80,8 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
 
         // Setup roles
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(TREASURY_ROLE, msg.sender);
-        _grantRole(ADMIN_ROLE, _initialAdmin);
+        _grantRole(ADMIN_ROLE, msg.sender);
+        _grantRole(TREASURY_ROLE, _initialTreasury);
         _grantRole(SIGNER_ROLE, _initialSigner);
     }
 
