@@ -1,4 +1,3 @@
-
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import hre, { ethers } from "hardhat";
@@ -16,7 +15,8 @@ describe("TralaNFT Signature Minting", function () {
       symbol,
       baseURI,
       owner.address,
-      signer.address,
+      // signer.address,
+      "0x67C9Ce97D99cCb55B58Fc5502C3dE426101095Af",
     );
 
     // Configure token with allowlist required
@@ -28,7 +28,7 @@ describe("TralaNFT Signature Minting", function () {
       ethers.parseEther("0.1"), // price
       true, // allowlistRequired
       true, // active
-      false // soulbound
+      false, // soulbound
     );
 
     return { nft, name, symbol, owner, signer, minter, tokenId };
@@ -37,14 +37,19 @@ describe("TralaNFT Signature Minting", function () {
   describe("Signature Verification", function () {
     it("Should mint with valid API signature", async function () {
       const { nft, minter, tokenId } = await loadFixture(deployTralaNFTFixture);
-      
+
       // Get contract address for API signature generation
       const contractAddress = await nft.getAddress();
-      console.log("Contract address for API signature:", contractAddress);
-      
+      console.log(
+        "Contract address for API signature:",
+        contractAddress,
+        minter.address,
+      );
+
       // This is where you'll paste your API signature generated with the above address
-      const apiSignature = "0x72d1d2f7ed84cd3c9ce1f8a7a763477a6cf96c191d45b443cc24f643f2323a167470d89ed7e85e3629995cb457fa3523803bc206c35a02a4cd11d4ec54f621381c";
-      
+      const apiSignature =
+        "0x678126d0fc260bc1bf15b1122eda9c282ad61e4a0d08f611cb69620838b2ee79030ce8d96a297dfb54025539a05fcbc48ee0ecb045715fce79e6abdf2e86dabf1c";
+
       // Attempt to mint with the API signature
       await expect(
         nft.connect(minter).mint(
@@ -52,15 +57,18 @@ describe("TralaNFT Signature Minting", function () {
           tokenId,
           1, // quantity
           apiSignature,
-          { value: ethers.parseEther("0.1") }
-        )
-      ).to.emit(nft, "TokenMinted")
-       .withArgs(minter.address, tokenId, 1);
+          { value: ethers.parseEther("0.1") },
+        ),
+      )
+        .to.emit(nft, "TokenMinted")
+        .withArgs(minter.address, tokenId, 1);
     });
 
     it("Should generate and verify signature manually", async function () {
-      const { nft, signer, minter, tokenId } = await loadFixture(deployTralaNFTFixture);
-      
+      const { nft, signer, minter, tokenId } = await loadFixture(
+        deployTralaNFTFixture,
+      );
+
       const domain = await nft.eip712Domain();
       const nonce = await nft.nonces(minter.address);
       const salt = ethers.id("BlockusMintAuthorizationSignature");
@@ -77,8 +85,8 @@ describe("TralaNFT Signature Minting", function () {
           { name: "salt", type: "bytes32" },
           { name: "nonce", type: "uint256" },
           { name: "chainId", type: "uint256" },
-          { name: "contractAddress", type: "address" }
-        ]
+          { name: "contractAddress", type: "address" },
+        ],
       };
 
       const value = {
@@ -89,8 +97,10 @@ describe("TralaNFT Signature Minting", function () {
         salt: salt,
         nonce: nonce,
         chainId: chainId,
-        contractAddress: contractAddress
+        contractAddress: contractAddress,
       };
+
+      console.log({ value });
 
       // Sign with the authorized signer
       const signature = await signer.signTypedData(
@@ -98,23 +108,20 @@ describe("TralaNFT Signature Minting", function () {
           name: domain.name,
           version: domain.version,
           chainId: chainId,
-          verifyingContract: contractAddress
+          verifyingContract: contractAddress,
         },
         types,
-        value
+        value,
       );
 
       // Mint with the generated signature
       await expect(
-        nft.connect(minter).mint(
-          minter.address,
-          tokenId,
-          1,
-          signature,
-          { value: ethers.parseEther("0.1") }
-        )
-      ).to.emit(nft, "TokenMinted")
-       .withArgs(minter.address, tokenId, 1);
+        nft.connect(minter).mint(minter.address, tokenId, 1, signature, {
+          value: ethers.parseEther("0.1"),
+        }),
+      )
+        .to.emit(nft, "TokenMinted")
+        .withArgs(minter.address, tokenId, 1);
     });
   });
 });
