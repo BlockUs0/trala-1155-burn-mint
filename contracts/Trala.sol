@@ -26,6 +26,10 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
     error NoFundsToWithdraw();
     error WithdrawalFailed();
 
+    bytes32 private constant MINT_AUTHORIZATION_TYPEHASH = 
+        keccak256("MintAuthorization(address minter,address to,uint256 tokenId,uint256 quantity,bytes32 salt,uint256 nonce,uint256 chainId,address contractAddress)");
+
+
     // Role definitions
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
@@ -168,24 +172,34 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
                 revert SignatureRequired();
             }
 
-            // Create message hash matching backend format
-            bytes32 salt = keccak256("0x");
-            bytes32 messageHash = keccak256(
+            // Get the current nonce for the sender
+            uint256 nonce = _nonces[msg.sender];
+
+            // Need to match the salt calculation with backend
+            bytes32 salt = keccak256(bytes("BlockusMintAuthorizationSignature"));
+
+            // Create the struct hash according to EIP-712 encoding
+            bytes32 structHash = keccak256(
                 abi.encode(
+                    MINT_AUTHORIZATION_TYPEHASH,
                     msg.sender,           // minter
                     to,                   // to
                     tokenId,              // tokenId
                     amount,               // quantity
                     salt,                 // salt
-                    _nonces[msg.sender],  // nonce
+                    nonce,                // nonce
                     block.chainid,        // chainId
                     address(this)         // contractAddress
                 )
             );
 
-            // Verify the signature came from a valid signer
-            bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
-            address signer = ECDSA.recover(ethSignedMessageHash, signature);
+            // Get the EIP-712 typed data hash
+            bytes32 hash = _hashTypedDataV4(structHash);
+
+            // Recover the signer from the signature
+            address signer = ECDSA.recover(hash, signature);
+
+            // Verify the signer has the required role
             if (!hasRole(SIGNER_ROLE, signer)) {
                 revert InvalidSignature();
             }
