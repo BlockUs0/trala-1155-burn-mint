@@ -39,7 +39,7 @@ describe("TralaNFT Signature Minting", function () {
       const { nft, minter, tokenId } = await loadFixture(deployTralaNFTFixture);
       
       // This is where you'll paste your API signature
-      const apiSignature = "0x..."; // Replace with your actual signature from the API
+      const apiSignature = "0x72d1d2f7ed84cd3c9ce1f8a7a763477a6cf96c191d45b443cc24f643f2323a167470d89ed7e85e3629995cb457fa3523803bc206c35a02a4cd11d4ec54f621381c";
       
       // Attempt to mint with the API signature
       await expect(
