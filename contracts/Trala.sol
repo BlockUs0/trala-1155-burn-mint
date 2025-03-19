@@ -168,16 +168,18 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
                 revert SignatureRequired();
             }
 
-            // Create message hash that was signed
+            // Create message hash matching backend format
+            bytes32 salt = keccak256("0x");
             bytes32 messageHash = keccak256(
-                abi.encodePacked(
-                    msg.sender,
-                    to,
-                    tokenId,
-                    amount,
-                    _nonces[msg.sender],
-                    block.chainid,
-                    address(this)
+                abi.encode(
+                    msg.sender,           // minter
+                    to,                   // to
+                    tokenId,              // tokenId
+                    amount,               // quantity
+                    salt,                 // salt
+                    _nonces[msg.sender],  // nonce
+                    block.chainid,        // chainId
+                    address(this)         // contractAddress
                 )
             );
 
