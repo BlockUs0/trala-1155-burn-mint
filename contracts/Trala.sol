@@ -65,7 +65,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
      * @param _name Collection name
      * @param _symbol Collection symbol
      * @param _uri Base URI for token metadata
-     * @param _initialAdmin Address to be granted admin role
+     * @param _initialTreasury Address to be granted admin role
      * @param _initialSigner Address to be granted signer role
      */
     constructor(
