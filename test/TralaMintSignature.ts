@@ -16,8 +16,8 @@ describe("TralaNFT Signature Minting", function () {
       symbol,
       baseURI,
       owner.address,
-      // signer.address,
-      authority
+      signer.address,
+      // authority
     );
 
     // Configure token with allowlist required
@@ -100,6 +100,8 @@ describe("TralaNFT Signature Minting", function () {
         chainId: chainId,
         contractAddress: contractAddress,
       };
+
+      console.log({ value, domain });
 
       // Sign with the authorized signer
       const signature = await signer.signTypedData(

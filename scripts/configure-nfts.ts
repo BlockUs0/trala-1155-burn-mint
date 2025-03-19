@@ -26,20 +26,20 @@ async function main() {
       tokenId: 1,
       name: "Grade A",
       maxSupply: 100n,
-      price: ethers.parseEther("0.1"),
+      price: ethers.parseEther("0"),
       allowlistRequired: true,
       active: true,
       soulbound: true
     },
-    {
-      tokenId: 2,
-      name: "Grade B",
-      maxSupply: 200n,
-      price: ethers.parseEther("0.05"),
-      allowlistRequired: false,
-      active: true,
-      soulbound: false
-    }
+    // {
+    //   tokenId: 2,
+    //   name: "Grade B",
+    //   maxSupply: 200n,
+    //   price: ethers.parseEther("0.05"),
+    //   allowlistRequired: false,
+    //   active: true,
+    //   soulbound: false
+    // }
   ];
 
   // Configure each NFT

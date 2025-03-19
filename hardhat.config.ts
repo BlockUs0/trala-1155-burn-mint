@@ -16,7 +16,7 @@ const config: HardhatUserConfig = {
       chainId: 1,
     },
     polygon: {
-      url: process.env.RELAYER_PRIVATE_KEY,
+      url: process.env.POLYGON_RPC_URL,
       accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
       chainId: 137,
     },
