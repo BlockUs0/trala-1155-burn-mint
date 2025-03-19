@@ -374,3 +374,19 @@ describe("TralaNFT", function () {
     });
   });
 });
+
+
+
+  describe("EIP712 Domain", function () {
+    it("Should have correct EIP712 domain parameters", async function () {
+      const { nft, name } = await loadFixture(deployTralaNFTFixture);
+      
+      const domain = await nft.eip712Domain();
+      
+      expect(domain.name).to.equal(name);
+      expect(domain.version).to.equal("1");
+      expect(domain.chainId).to.equal(await ethers.provider.getNetwork().then(n => n.chainId));
+      expect(domain.verifyingContract).to.equal(await nft.getAddress());
+    });
+  });
+
