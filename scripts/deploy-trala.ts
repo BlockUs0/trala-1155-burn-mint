@@ -26,7 +26,7 @@ async function main() {
         "TRALA", 
         "https://api.trala.com/metadata/",
         deployer.address,
-        signer.address
+        deployer.address
       ],
     });
     console.log("TralaNFT verified successfully!");
