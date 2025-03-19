@@ -17,6 +17,17 @@ const DeployTralaModule = buildModule("DeployTralaModule", (m) => {
     initialSigner
   ]);
 
+  // Configure initial test token
+  m.call(tralaNFT, "configureToken", [
+    1, // tokenId
+    "Test Token", // name
+    0, // maxSupply (unlimited)
+    0, // price
+    false, // allowlistRequired
+    true, // active
+    false // soulbound
+  ]);
+
   return { tralaNFT };
 });
 
