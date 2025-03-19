@@ -15,6 +15,11 @@ const config: HardhatUserConfig = {
       accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
       chainId: 1,
     },
+    polygon: {
+      url: process.env.RELAYER_PRIVATE_KEY,
+      accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
+      chainId: 137,
+    },
     sepolia: {
       url: process.env.SEPOLIA_RPC_URL!,
       accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
@@ -31,6 +36,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
       sepolia: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
+      polygon: process.env.POLYGON_ETHERSCAN,
       b3:'as'
     },
     customChains: [

@@ -8,6 +8,7 @@ describe("TralaNFT Signature Minting", function () {
     const symbol = "TRALA";
     const baseURI = "https://api.trala.com/metadata/";
     const [owner, signer, minter] = await hre.ethers.getSigners();
+    const authority = "0x67C9Ce97D99cCb55B58Fc5502C3dE426101095Af";
 
     const TralaNFT = await hre.ethers.getContractFactory("TralaNFT");
     const nft = await TralaNFT.deploy(
@@ -16,7 +17,7 @@ describe("TralaNFT Signature Minting", function () {
       baseURI,
       owner.address,
       // signer.address,
-      "0x67C9Ce97D99cCb55B58Fc5502C3dE426101095Af",
+      authority
     );
 
     // Configure token with allowlist required
@@ -31,7 +32,7 @@ describe("TralaNFT Signature Minting", function () {
       false, // soulbound
     );
 
-    return { nft, name, symbol, owner, signer, minter, tokenId };
+    return { nft, name, symbol, owner, signer, minter, tokenId, authority };
   }
 
   describe("Signature Verification", function () {
@@ -48,7 +49,7 @@ describe("TralaNFT Signature Minting", function () {
 
       // This is where you'll paste your API signature generated with the above address
       const apiSignature =
-        "0x678126d0fc260bc1bf15b1122eda9c282ad61e4a0d08f611cb69620838b2ee79030ce8d96a297dfb54025539a05fcbc48ee0ecb045715fce79e6abdf2e86dabf1c";
+        "0x53d9278146bd2409a5fd912f2bb6beb7554a6523e4e46d6c04a3810d037128a93552fc4b36293fec810efe1c67651c47ade01c157267ed1fd3d5dbf033a841d81c";
 
       // Attempt to mint with the API signature
       await expect(
@@ -99,8 +100,6 @@ describe("TralaNFT Signature Minting", function () {
         chainId: chainId,
         contractAddress: contractAddress,
       };
-
-      console.log({ value });
 
       // Sign with the authorized signer
       const signature = await signer.signTypedData(
