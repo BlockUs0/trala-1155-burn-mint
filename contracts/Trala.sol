@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
@@ -14,7 +15,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @dev Implementation of the Trala Platform NFT system with multiple token grades
  * and configurable parameters for each grade.
  */
-contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pausable, ReentrancyGuard {
+contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pausable, ReentrancyGuard, EIP712 {
     // Custom errors
     error TokenNotActive(uint256 tokenId);
     error InsufficientPayment(uint256 required, uint256 sent);
@@ -74,7 +75,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
         string memory _uri,
         address _initialTreasury,
         address _initialSigner
-    ) ERC1155(_uri) {
+    ) ERC1155(_uri) EIP712(_name, "1") {
         name = _name;
         symbol = _symbol;
 
