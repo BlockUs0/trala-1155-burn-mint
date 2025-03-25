@@ -17,9 +17,9 @@ async function main() {
   const deployedAddresses = JSON.parse(readFileSync(deploymentPath, "utf8"));
   const tralaNFTAddress = deployedAddresses["DeployTralaModule#TralaNFT"];
 
-  // Get the contract instance
+  // Get the contract instance with proper typing
   const TralaNFT = await hre.ethers.getContractFactory("TralaNFT");
-  const nft = TralaNFT.attach(tralaNFTAddress);
+  const nft = (await TralaNFT.attach(tralaNFTAddress)) as unknown as TralaNFT;
 
   // Example configurations
   const nftConfigs = [
