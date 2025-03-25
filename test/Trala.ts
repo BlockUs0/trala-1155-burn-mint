@@ -1,6 +1,7 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import hre, { ethers } from "hardhat";
+import { TralaNFT } from "../typechain-types";
 
 describe("TralaNFT", function () {
   // Fixture to reuse the same setup in every test
@@ -377,7 +378,7 @@ describe("TralaNFT", function () {
   describe("EIP712 Domain", function () {
     it("Should have correct EIP712 domain parameters", async function () {
       const { nft, name } = await loadFixture(deployTralaNFTFixture);
-      
+
       const domain = await nft.eip712Domain();
       console.log({ domain })
       expect(domain.name).to.equal(name);
@@ -387,6 +388,3 @@ describe("TralaNFT", function () {
     });
   });
 });
-
-
-
