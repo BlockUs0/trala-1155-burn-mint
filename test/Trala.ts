@@ -15,7 +15,7 @@ describe("TralaNFT", function () {
 
     // Deploy the contract
     const TralaNFT = await hre.ethers.getContractFactory("TralaNFT");
-    const nft = await TralaNFT.deploy(
+    const nft: TralaNFT = await TralaNFT.deploy(
       name,
       symbol,
       baseURI,

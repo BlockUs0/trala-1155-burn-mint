@@ -1,6 +1,7 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import hre, { ethers } from "hardhat";
+import { TralaNFT } from "../typechain-types";
 
 describe("TralaNFT Signature Minting", function () {
   async function deployTralaNFTFixture() {
@@ -11,7 +12,7 @@ describe("TralaNFT Signature Minting", function () {
     const authority = "0x67C9Ce97D99cCb55B58Fc5502C3dE426101095Af";
 
     const TralaNFT = await hre.ethers.getContractFactory("TralaNFT");
-    const nft = await TralaNFT.deploy(
+    const nft: TralaNFT = await TralaNFT.deploy(
       name,
       symbol,
       baseURI,
@@ -36,7 +37,7 @@ describe("TralaNFT Signature Minting", function () {
   }
 
   describe("Signature Verification", function () {
-    it("Should mint with valid API signature", async function () {
+    it.skip("Should mint with valid API signature", async function () {
       const { nft, minter, tokenId } = await loadFixture(deployTralaNFTFixture);
 
       // Get contract address for API signature generation

@@ -1,7 +1,6 @@
 import { readFileSync } from "fs";
 import path from "path";
 import hre from "hardhat";
-import { ethers } from "hardhat";
 import { TralaNFT } from "../typechain-types";
 
 async function main() {

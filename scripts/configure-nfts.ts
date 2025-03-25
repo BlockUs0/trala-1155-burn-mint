@@ -2,6 +2,7 @@
 import hre, { ethers } from "hardhat";
 import { readFileSync } from "fs";
 import path from "path";
+import { TralaNFT } from "../typechain-types";
 
 async function main() {
   // Get the network and deployment info
