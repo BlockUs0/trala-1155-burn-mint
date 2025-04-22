@@ -1,0 +1,158 @@
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { expect } from "chai";
+import hre from "hardhat";
+
+describe("TralaNFTStaking", function () {
+  // Fixture to deploy contracts for testing
+  async function deployStakingFixture() {
+    const [owner, admin, user] = await hre.ethers.getSigners();
+
+    // Deploy TralaNFT contract
+    const name = "Trala NFT";
+    const symbol = "TRALA";
+    const baseURI = "https://api.trala.com/metadata/";
+    
+    const TralaNFTFactory = await hre.ethers.getContractFactory("TralaNFT");
+    const tralaNFT = await TralaNFTFactory.deploy(
+      name,
+      symbol,
+      baseURI,
+      owner.address, // treasury
+      owner.address  // signer
+    );
+
+    // Configure a token for testing
+    const tokenId = 1;
+    await tralaNFT.configureToken(
+      tokenId,
+      "Test Token",
+      1000n, // maxSupply
+      0, // price (free)
+      false, // allowlistRequired (false for easier testing)
+      true, // active
+      false // soulbound
+    );
+
+    // Deploy staking contract
+    const TralaNFTStakingFactory = await hre.ethers.getContractFactory("TralaNFTStaking");
+    const staking = await TralaNFTStakingFactory.deploy(
+      await tralaNFT.getAddress(),
+      admin.address
+    );
+
+    return { staking, tralaNFT, owner, admin, user, tokenId };
+  }
+
+  describe("Deployment", function () {
+    it("Should set the right NFT contract address", async function () {
+      const { staking, tralaNFT } = await loadFixture(deployStakingFixture);
+      expect(await staking.nftContract()).to.equal(await tralaNFT.getAddress());
+    });
+
+    it("Should set the right admin roles", async function () {
+      const { staking, admin } = await loadFixture(deployStakingFixture);
+      const ADMIN_ROLE = await staking.ADMIN_ROLE();
+      expect(await staking.hasRole(ADMIN_ROLE, admin.address)).to.be.true;
+    });
+
+    it("Should start unpaused", async function () {
+      const { staking } = await loadFixture(deployStakingFixture);
+      expect(await staking.paused()).to.be.false;
+    });
+  });
+
+  describe("Staking", function () {
+    it("Should allow staking tokens", async function () {
+      const { staking, tralaNFT, user, tokenId, owner } = await loadFixture(deployStakingFixture);
+      const amount = 5;
+
+      // Mint tokens to user
+      await tralaNFT.connect(owner).mint(user.address, tokenId, amount, "0x");
+
+      // Approve staking contract
+      await tralaNFT.connect(user).setApprovalForAll(await staking.getAddress(), true);
+
+      // Stake tokens
+      await staking.connect(user).stake(tokenId, amount);
+      
+      // Check staked amount
+      expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(amount);
+      
+      // Check NFT balance of staking contract
+      expect(await tralaNFT.balanceOf(await staking.getAddress(), tokenId)).to.equal(amount);
+    });
+
+    it("Should allow unstaking tokens", async function () {
+      const { staking, tralaNFT, user, tokenId, owner } = await loadFixture(deployStakingFixture);
+      const amount = 5;
+
+      // Mint tokens to user
+      await tralaNFT.connect(owner).mint(user.address, tokenId, amount, "0x");
+
+      // Approve staking contract
+      await tralaNFT.connect(user).setApprovalForAll(await staking.getAddress(), true);
+
+      // Stake tokens
+      await staking.connect(user).stake(tokenId, amount);
+      
+      // Initial balance check
+      expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(amount);
+
+      // Unstake tokens
+      await staking.connect(user).unstake(tokenId, amount);
+
+      // Check staked amount is zero
+      expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(0);
+      
+      // Check NFT returned to user
+      expect(await tralaNFT.balanceOf(user.address, tokenId)).to.equal(amount);
+    });
+  });
+
+  describe("Admin Functions", function () {
+    it("Should allow admin to pause and unpause", async function () {
+      const { staking, admin } = await loadFixture(deployStakingFixture);
+
+      // Pause
+      await staking.connect(admin).pause();
+      expect(await staking.paused()).to.be.true;
+
+      // Unpause
+      await staking.connect(admin).unpause();
+      expect(await staking.paused()).to.be.false;
+    });
+
+    it("Should allow admin to emergency unstake", async function () {
+      const { staking, tralaNFT, user, tokenId, owner, admin } = await loadFixture(deployStakingFixture);
+      const amount = 5;
+
+      // Mint tokens to user
+      await tralaNFT.connect(owner).mint(user.address, tokenId, amount, "0x");
+
+      // Approve staking contract
+      await tralaNFT.connect(user).setApprovalForAll(await staking.getAddress(), true);
+
+      // Stake tokens
+      await staking.connect(user).stake(tokenId, amount);
+      
+      // Initial balance check
+      expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(amount);
+
+      // Emergency unstake by admin
+      await staking.connect(admin).emergencyUnstake(tokenId, user.address);
+
+      // Check staked amount is zero
+      expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(0);
+      
+      // Check NFT returned to user
+      expect(await tralaNFT.balanceOf(user.address, tokenId)).to.equal(amount);
+    });
+    
+    it("Should revert when non-admin tries to pause", async function () {
+      const { staking, user } = await loadFixture(deployStakingFixture);
+      
+      // Try to pause as non-admin
+      await expect(staking.connect(user).pause()).to.be.reverted;
+    });
+  });
+});
