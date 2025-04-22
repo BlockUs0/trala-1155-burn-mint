@@ -31,6 +31,7 @@ contract TralaNFTStaking is ERC1155Holder, AccessControl, Pausable, ReentrancyGu
     event ContractPaused(address indexed admin);
     event ContractUnpaused(address indexed admin);
     event EmergencyUnstake(address indexed admin, address indexed user, uint256 indexed tokenId, uint256 amount);
+    event NFTAddressUpdated(address indexed admin, address indexed oldAddress, address indexed newAddress);
     
     constructor(address nftAddress, address admin) {
         if(nftAddress == address(0)) revert ZeroAddress();
@@ -145,6 +146,24 @@ contract TralaNFTStaking is ERC1155Holder, AccessControl, Pausable, ReentrancyGu
     function unpause() external onlyRole(ADMIN_ROLE) {
         _unpause();
         emit ContractUnpaused(msg.sender);
+    }
+    
+    /**
+     * @notice Update the NFT contract address
+     * @param newNftAddress The new NFT contract address
+     */
+    function updateNftAddress(address newNftAddress) external onlyRole(ADMIN_ROLE) {
+        if(newNftAddress == address(0)) revert ZeroAddress();
+        
+        // Check that the contract supports the ERC1155 interface
+        if(!IERC165(newNftAddress).supportsInterface(type(IERC1155).interfaceId)) {
+            revert InvalidERC1155Interface();
+        }
+        
+        address oldNftAddress = address(nftContract);
+        nftContract = IERC1155(newNftAddress);
+        
+        emit NFTAddressUpdated(msg.sender, oldNftAddress, newNftAddress);
     }
     
     // Required overrides

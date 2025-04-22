@@ -1,4 +1,4 @@
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
 
@@ -72,14 +72,22 @@ describe("TralaNFTStaking", function () {
       // Approve staking contract
       await tralaNFT.connect(user).setApprovalForAll(await staking.getAddress(), true);
 
-      // Stake tokens
-      await staking.connect(user).stake(tokenId, amount);
+      // Stake tokens and check for event
+      const stakeTx = await staking.connect(user).stake(tokenId, amount);
+      
+      // Wait for transaction to be mined
+      const receipt = await stakeTx.wait();
       
       // Check staked amount
       expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(amount);
       
       // Check NFT balance of staking contract
       expect(await tralaNFT.balanceOf(await staking.getAddress(), tokenId)).to.equal(amount);
+      
+      // Verify TokenStaked event was emitted with correct parameters
+      await expect(stakeTx)
+        .to.emit(staking, "TokenStaked")
+        .withArgs(user.address, tokenId, amount, await time.latest());
     });
 
     it("Should allow unstaking tokens", async function () {
@@ -98,14 +106,22 @@ describe("TralaNFTStaking", function () {
       // Initial balance check
       expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(amount);
 
-      // Unstake tokens
-      await staking.connect(user).unstake(tokenId, amount);
+      // Unstake tokens and check for event
+      const unstakeTx = await staking.connect(user).unstake(tokenId, amount);
+      
+      // Wait for transaction to be mined
+      const receipt = await unstakeTx.wait();
 
       // Check staked amount is zero
       expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(0);
       
       // Check NFT returned to user
       expect(await tralaNFT.balanceOf(user.address, tokenId)).to.equal(amount);
+      
+      // Verify TokenUnstaked event was emitted with correct parameters
+      await expect(unstakeTx)
+        .to.emit(staking, "TokenUnstaked")
+        .withArgs(user.address, tokenId, amount, await time.latest());
     });
   });
 
@@ -153,6 +169,42 @@ describe("TralaNFTStaking", function () {
       
       // Try to pause as non-admin
       await expect(staking.connect(user).pause()).to.be.reverted;
+    });
+
+    it("Should allow admin to update NFT address", async function () {
+      const { staking, admin, owner } = await loadFixture(deployStakingFixture);
+      
+      // Deploy a new TralaNFT contract to use as the new address
+      const newNftFactory = await hre.ethers.getContractFactory("TralaNFT");
+      const newNft = await newNftFactory.deploy(
+        "New Trala NFT",
+        "NTRALA",
+        "https://api.trala.com/new-metadata/",
+        owner.address, // treasury
+        owner.address  // signer
+      );
+      
+      const oldNftAddress = await staking.nftContract();
+      const newNftAddress = await newNft.getAddress();
+      
+      // Update NFT address as admin and check for event
+      const updateTx = await staking.connect(admin).updateNftAddress(newNftAddress);
+      
+      // Verify the address was updated
+      expect(await staking.nftContract()).to.equal(newNftAddress);
+      expect(await staking.nftContract()).to.not.equal(oldNftAddress);
+      
+      // Verify NFTAddressUpdated event was emitted with correct parameters
+      await expect(updateTx)
+        .to.emit(staking, "NFTAddressUpdated")
+        .withArgs(admin.address, oldNftAddress, newNftAddress);
+    });
+    
+    it("Should revert when non-admin tries to update NFT address", async function () {
+      const { staking, tralaNFT, user } = await loadFixture(deployStakingFixture);
+      
+      // Try to update NFT address as non-admin
+      await expect(staking.connect(user).updateNftAddress(await tralaNFT.getAddress())).to.be.reverted;
     });
   });
 });

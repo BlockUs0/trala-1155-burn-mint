@@ -1,20 +1,17 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import DeployTralaModule from "./DeployTrala";
 
 export default buildModule("TralaStakingModule", (m) => {
-  // Get parameters with defaults
-  const admin = m.getParameter("admin", "0x67C9Ce97D99cCb55B58Fc5502C3dE426101095Af");
-  const nftAddress = m.getParameter("nftAddress", "0x0000000000000000000000000000000000000000");
-
-  // Log parameters for verification
-  console.log({
-    admin,
-    nftAddress,
-  });
+  const { tralaNFT } = m.useModule(DeployTralaModule);
+  
+  // Get admin parameter - can be overridden during deployment
+  // npx hardhat ignition deploy ignition/modules/DeployTralaStaking.ts --parameters admin=YOUR_ADDRESS
+  const admin = m.getParameter("admin", "0xFB712f6712E701dc09F50E6373F230780a84eD7b");
 
   // Deploy the TralaNFTStaking contract
   const staking = m.contract("TralaNFTStaking", [
-    nftAddress,
-    admin
+    tralaNFT,
+    admin.defaultValue!
   ]);
 
   return { staking };
