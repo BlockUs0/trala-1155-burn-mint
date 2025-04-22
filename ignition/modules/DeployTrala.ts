@@ -6,18 +6,18 @@ const DeployTralaModule = buildModule("DeployTralaModule", (m) => {
   const baseURI = m.getParameter("baseURI", "https://api.trala.com/metadata/");
 
   const initialTreasury = "0x4D483FB9Aa883956f05fb1CF0746B04e93170D13"; // First account as treasury
-  const initialSigner = "0x67C9Ce97D99cCb55B58Fc5502C3dE426101095Af"; // First account as signer
+  const initialAdmin = "0x67C9Ce97D99cCb55B58Fc5502C3dE426101095Af"; // First account as signer
 
   console.log({
     initialTreasury,
-    initialSigner,
+    initialAdmin,
   });
   const tralaNFT = m.contract("TralaNFT", [
     name,
     symbol,
     baseURI,
     initialTreasury,
-    initialSigner,
+    initialAdmin,
   ]);
 
   // Configure initial test token
