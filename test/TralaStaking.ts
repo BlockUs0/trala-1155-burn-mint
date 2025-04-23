@@ -37,7 +37,7 @@ describe("TralaNFTStaking", function () {
     const TralaNFTStakingFactory = await hre.ethers.getContractFactory("TralaNFTStaking");
     const staking = await TralaNFTStakingFactory.deploy(
       await tralaNFT.getAddress(),
-      admin.address
+      admin.address // Admin is now the owner
     );
 
     return { staking, tralaNFT, owner, admin, user, tokenId };
@@ -49,10 +49,9 @@ describe("TralaNFTStaking", function () {
       expect(await staking.nftContract()).to.equal(await tralaNFT.getAddress());
     });
 
-    it("Should set the right admin roles", async function () {
+    it("Should set the right owner", async function () {
       const { staking, admin } = await loadFixture(deployStakingFixture);
-      const ADMIN_ROLE = await staking.ADMIN_ROLE();
-      expect(await staking.hasRole(ADMIN_ROLE, admin.address)).to.be.true;
+      expect(await staking.owner()).to.equal(admin.address);
     });
 
     it("Should start unpaused", async function () {
@@ -125,8 +124,8 @@ describe("TralaNFTStaking", function () {
     });
   });
 
-  describe("Admin Functions", function () {
-    it("Should allow admin to pause and unpause", async function () {
+  describe("Owner Functions", function () {
+    it("Should allow owner to pause and unpause", async function () {
       const { staking, admin } = await loadFixture(deployStakingFixture);
 
       // Pause
@@ -138,7 +137,7 @@ describe("TralaNFTStaking", function () {
       expect(await staking.paused()).to.be.false;
     });
 
-    it("Should allow admin to emergency unstake", async function () {
+    it("Should allow owner to emergency unstake", async function () {
       const { staking, tralaNFT, user, tokenId, owner, admin } = await loadFixture(deployStakingFixture);
       const amount = 5;
 
@@ -154,7 +153,7 @@ describe("TralaNFTStaking", function () {
       // Initial balance check
       expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(amount);
 
-      // Emergency unstake by admin
+      // Emergency unstake by admin (now owner)
       await staking.connect(admin).emergencyUnstake(tokenId, user.address);
 
       // Check staked amount is zero
@@ -164,14 +163,17 @@ describe("TralaNFTStaking", function () {
       expect(await tralaNFT.balanceOf(user.address, tokenId)).to.equal(amount);
     });
     
-    it("Should revert when non-admin tries to pause", async function () {
+    it("Should revert when non-owner tries to pause", async function () {
       const { staking, user } = await loadFixture(deployStakingFixture);
       
-      // Try to pause as non-admin
-      await expect(staking.connect(user).pause()).to.be.reverted;
+      // Try to pause as non-owner
+      await expect(staking.connect(user).pause()).to.be.revertedWithCustomError(
+        staking,
+        "OwnableUnauthorizedAccount"
+      ).withArgs(user.address);
     });
 
-    it("Should allow admin to update NFT address", async function () {
+    it("Should allow owner to update NFT address", async function () {
       const { staking, admin, owner } = await loadFixture(deployStakingFixture);
       
       // Deploy a new TralaNFT contract to use as the new address
@@ -187,7 +189,7 @@ describe("TralaNFTStaking", function () {
       const oldNftAddress = await staking.nftContract();
       const newNftAddress = await newNft.getAddress();
       
-      // Update NFT address as admin and check for event
+      // Update NFT address as admin (now owner) and check for event
       const updateTx = await staking.connect(admin).updateNftAddress(newNftAddress);
       
       // Verify the address was updated
@@ -200,11 +202,27 @@ describe("TralaNFTStaking", function () {
         .withArgs(admin.address, oldNftAddress, newNftAddress);
     });
     
-    it("Should revert when non-admin tries to update NFT address", async function () {
+    it("Should revert when non-owner tries to update NFT address", async function () {
       const { staking, tralaNFT, user } = await loadFixture(deployStakingFixture);
       
-      // Try to update NFT address as non-admin
-      await expect(staking.connect(user).updateNftAddress(await tralaNFT.getAddress())).to.be.reverted;
+      // Try to update NFT address as non-owner
+      await expect(staking.connect(user).updateNftAddress(await tralaNFT.getAddress()))
+        .to.be.revertedWithCustomError(staking, "OwnableUnauthorizedAccount")
+        .withArgs(user.address);
+    });
+
+    it("Should allow ownership transfer", async function () {
+      const { staking, admin, user } = await loadFixture(deployStakingFixture);
+      
+      // Transfer ownership from admin to user
+      await staking.connect(admin).transferOwnership(user.address);
+      
+      // Verify the ownership was transferred
+      expect(await staking.owner()).to.equal(user.address);
+      
+      // Verify new owner can perform admin functions
+      await staking.connect(user).pause();
+      expect(await staking.paused()).to.be.true;
     });
   });
 });

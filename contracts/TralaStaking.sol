@@ -3,21 +3,18 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-contract TralaNFTStaking is ERC1155Holder, AccessControl, Pausable, ReentrancyGuard {
+contract TralaNFTStaking is ERC1155Holder, Ownable, Pausable, ReentrancyGuard {
     // Custom Errors
     error ZeroAmount();
     error ZeroAddress();
     error InsufficientStakedAmount();
     error NoTokensStaked();
     error InvalidERC1155Interface();
-    
-    // Roles
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     
     // Contract references
     IERC1155 public nftContract;
@@ -33,9 +30,9 @@ contract TralaNFTStaking is ERC1155Holder, AccessControl, Pausable, ReentrancyGu
     event EmergencyUnstake(address indexed admin, address indexed user, uint256 indexed tokenId, uint256 amount);
     event NFTAddressUpdated(address indexed admin, address indexed oldAddress, address indexed newAddress);
     
-    constructor(address nftAddress, address admin) {
+    constructor(address nftAddress, address initialOwner) Ownable(initialOwner) {
         if(nftAddress == address(0)) revert ZeroAddress();
-        if(admin == address(0)) revert ZeroAddress();
+        if(initialOwner == address(0)) revert ZeroAddress();
         
         // Check that the contract supports the ERC1155 interface
         if(!IERC165(nftAddress).supportsInterface(type(IERC1155).interfaceId)) {
@@ -43,9 +40,6 @@ contract TralaNFTStaking is ERC1155Holder, AccessControl, Pausable, ReentrancyGu
         }
         
         nftContract = IERC1155(nftAddress);
-        
-        _grantRole(DEFAULT_ADMIN_ROLE, admin);
-        _grantRole(ADMIN_ROLE, admin);
     }
     
     // User functions
@@ -112,7 +106,7 @@ contract TralaNFTStaking is ERC1155Holder, AccessControl, Pausable, ReentrancyGu
      * @param tokenId The token ID to rescue
      * @param user The user to return tokens to
      */
-    function emergencyUnstake(uint256 tokenId, address user) external onlyRole(ADMIN_ROLE) {
+    function emergencyUnstake(uint256 tokenId, address user) external onlyOwner {
         uint256 amount = stakedAmounts[user][tokenId];
         if(amount == 0) revert NoTokensStaked();
         
@@ -135,7 +129,7 @@ contract TralaNFTStaking is ERC1155Holder, AccessControl, Pausable, ReentrancyGu
     /**
      * @notice Pause the contract
      */
-    function pause() external onlyRole(ADMIN_ROLE) {
+    function pause() external onlyOwner {
         _pause();
         emit ContractPaused(msg.sender);
     }
@@ -143,7 +137,7 @@ contract TralaNFTStaking is ERC1155Holder, AccessControl, Pausable, ReentrancyGu
     /**
      * @notice Unpause the contract
      */
-    function unpause() external onlyRole(ADMIN_ROLE) {
+    function unpause() external onlyOwner {
         _unpause();
         emit ContractUnpaused(msg.sender);
     }
@@ -152,7 +146,7 @@ contract TralaNFTStaking is ERC1155Holder, AccessControl, Pausable, ReentrancyGu
      * @notice Update the NFT contract address
      * @param newNftAddress The new NFT contract address
      */
-    function updateNftAddress(address newNftAddress) external onlyRole(ADMIN_ROLE) {
+    function updateNftAddress(address newNftAddress) external onlyOwner {
         if(newNftAddress == address(0)) revert ZeroAddress();
         
         // Check that the contract supports the ERC1155 interface
@@ -166,11 +160,11 @@ contract TralaNFTStaking is ERC1155Holder, AccessControl, Pausable, ReentrancyGu
         emit NFTAddressUpdated(msg.sender, oldNftAddress, newNftAddress);
     }
     
-    // Required overrides
+    // Required override
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC1155Holder, AccessControl)
+        override(ERC1155Holder)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
