@@ -1,32 +1,35 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 const DeployTralaModule = buildModule("DeployTralaModule", (m) => {
-  const name = m.getParameter("name", "Trala NFT");
+  const name = m.getParameter("name", "Trala Arcade");
   const symbol = m.getParameter("symbol", "TRALA");
-  const baseURI = m.getParameter("baseURI", "https://api.trala.com/metadata/");
+  const baseURI = m.getParameter(
+    "baseURI",
+    "https://teal-genuine-cardinal-120.mypinata.cloud/ipfs/bafybeihavthaotmgpb3btvmvzvh2nbweuxowqkqdnn3gsfcnhl4kg7tz7q/{id}.json"
+  );
 
-  const initialTreasury = "0x4D483FB9Aa883956f05fb1CF0746B04e93170D13"; // First account as treasury
-  const initialSigner = "0x67C9Ce97D99cCb55B58Fc5502C3dE426101095Af"; // First account as signer
+  const initialTreasury = "0xBDE4d8669C7543acd972DA1Ad96478E7A5D857c2"; // First account as treasury
+  const initialAdmin = "0x71B81e78F08c3f2d799e3C1d5D4cE877ab0c8804"; // First account as signer
 
   console.log({
     initialTreasury,
-    initialSigner,
+    initialAdmin,
   });
   const tralaNFT = m.contract("TralaNFT", [
     name,
     symbol,
     baseURI,
     initialTreasury,
-    initialSigner,
+    initialAdmin,
   ]);
 
   // Configure initial test token
   m.call(tralaNFT, "configureToken", [
     1, // tokenId
-    "Test Token", // name
+    "Trala Arcade B Grade", // name
     0, // maxSupply (unlimited)
     0, // price
-    true, // allowlistRequired
+    false, // allowlistRequired
     true, // active
     false, // soulbound
   ]);

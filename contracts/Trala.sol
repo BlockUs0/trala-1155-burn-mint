@@ -85,6 +85,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
 
         // Setup roles
         _grantRole(ADMIN_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(TREASURY_ROLE, _initialTreasury);
         _grantRole(SIGNER_ROLE, _initialSigner);
     }
