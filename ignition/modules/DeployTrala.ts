@@ -26,7 +26,7 @@ const DeployTralaModule = buildModule("DeployTralaModule", (m) => {
     "Test Token", // name
     0, // maxSupply (unlimited)
     0, // price
-    true, // allowlistRequired
+    false, // allowlistRequired
     true, // active
     false, // soulbound
   ]);

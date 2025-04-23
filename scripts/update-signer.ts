@@ -2,6 +2,7 @@
 import hre, { ethers } from "hardhat";
 import { readFileSync } from "fs";
 import path from "path";
+import { TralaNFT } from "../typechain-types";
 
 async function main() {
   // Get the network and deployment info
@@ -18,7 +19,7 @@ async function main() {
 
   // Get the contract instance
   const TralaNFT = await hre.ethers.getContractFactory("TralaNFT");
-  const nft = TralaNFT.attach(tralaNFTAddress);
+  const nft = TralaNFT.attach(tralaNFTAddress) as TralaNFT;
 
   const newSignerAddress = "0x67C9Ce97D99cCb55B58Fc5502C3dE426101095Af";
   const SIGNER_ROLE = await nft.SIGNER_ROLE();
