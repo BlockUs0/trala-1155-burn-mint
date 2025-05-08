@@ -1,8 +1,8 @@
 import * as dotenv from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-ledger";
 dotenv.config();
-
 
 const config: HardhatUserConfig = {
   solidity: "0.8.27",
@@ -14,6 +14,14 @@ const config: HardhatUserConfig = {
       url: 'https://mainnet.infura.io/v3/8ef07dfe7367497f9b7d4a7ad2437ec8',
       accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
       chainId: 1,
+      ledgerAccounts: [
+        "0xBDE4d8669C7543acd972DA1Ad96478E7A5D857c2",
+      ],
+    },
+    polygon: {
+      url: process.env.POLYGON_RPC_URL,
+      accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
+      chainId: 137,
     },
     sepolia: {
       url: process.env.SEPOLIA_RPC_URL!,
@@ -31,6 +39,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
       sepolia: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
+      polygon: process.env.POLYGON_ETHERSCAN,
       b3:'as'
     },
     customChains: [

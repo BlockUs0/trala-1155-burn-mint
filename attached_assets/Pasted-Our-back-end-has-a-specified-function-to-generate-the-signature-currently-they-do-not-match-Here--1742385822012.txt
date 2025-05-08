@@ -1,0 +1,100 @@
+Our back end has a specified function to generate the signature, currently they do not match.
+
+Here is our logic, and acomodate this function to be able to generate the appropiate signature here as to be able to match them and stract the signer.
+
+@injectable()
+export class SignatureService {
+    createMessageDigest(types: ReadonlyArray<string | ethers.ParamType>, values: any[]): Uint8Array {
+        if (types.length !== values.length) {
+            throw new Error('Types and values arrays must have the same length');
+        }
+
+        return ethers.getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(types, values)));
+    }
+
+    signMessageDigest(
+        types: ReadonlyArray<string | ethers.ParamType>,
+        values: any[],
+        signer: EvmWallet,
+    ): Promise<string> {
+        const digest = this.createMessageDigest(types, values);
+        return signer.signMessage(digest);
+    }
+
+    async createMintAuthorizationSignature(
+        minter: string,
+        to: string,
+        contractAddress: string,
+        chain: EvmChain,
+        tokenId: number,
+        quantity: number,
+        signer: EvmWallet,
+        blockchainEvmService: BlockchainEvmService,
+    ): Promise<string> {
+        const nonce = await blockchainEvmService.getErc1155ContractUserNonce(contractAddress, chain, minter);
+        const chainId = evmChainInfoDic[chain].chainId;
+
+        const types = [
+            'address', // minter
+            'address', // to
+            'uint256', // tokenId
+            'uint256', // quantity
+            'bytes32', // salt
+            'uint256', // nonce
+            'uint256', // chainId
+            'address', // contractAddress
+        ];
+
+        const values = [minter, to, tokenId, quantity, ethers.keccak256('0x'), nonce, chainId, contractAddress];
+
+        return await this.signMessageDigest(types, values, signer);
+    }
+
+    async createEIP712MintAuthorizationSignature(
+AWolfsdorf marked this conversation as resolved.
+        minter: string,
+        to: string,
+        contractAddress: string,
+        chain: EvmChain,
+        tokenId: number,
+        quantity: number,
+        signer: EvmWallet,
+        blockchainEvmService: BlockchainEvmService,
+    ): Promise<string> {
+        const nonce = await blockchainEvmService.getErc1155ContractUserNonce(contractAddress, chain, minter);
+        const chainId = evmChainInfoDic[chain].chainId;
+
+        const domain = {
+            name: 'MintAuthorization',
+            version: '1',
+            chainId: evmChainInfoDic[chain].chainId,
+            verifyingContract: contractAddress,
+        };
+
+        const types = {
+            MintAuthorization: [
+                { name: 'minter', type: 'address' },
+                { name: 'to', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
+                { name: 'quantity', type: 'uint256' },
+                { name: 'salt', type: 'bytes32' },
+                { name: 'nonce', type: 'uint256' },
+                { name: 'chainId', type: 'uint256' },
+                { name: 'contractAddress', type: 'address' },
+            ],
+        };
+
+        const value = {
+            minter,
+            to,
+            tokenId,
+            quantity,
+            salt: ethers.keccak256(ethers.toUtf8Bytes('BlockusMintAuthorizationSignature')),
+            nonce,
+            chainId,
+            contractAddress,
+        };
+
+        return await signer.signTypedData({ domain, types, value });
+    }
+}

@@ -1,0 +1,38 @@
+modules = ["nodejs-20"]
+run = "node index.js"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "node index.js"]
+
+[workflows]
+runButton = "Run Tests"
+
+[[workflows.workflow]]
+name = "Run Tests"
+author = 36697068
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm hardhat test --network hardhat"
+
+[[workflows.workflow]]
+name = "Configure NFTs"
+author = 36697068
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm hardhat run scripts/configure-nfts.ts --network sepolia"
+
+[[workflows.workflow]]
+name = "Update Signer"
+author = 36697068
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm hardhat run scripts/update-signer.ts --network polygon"

@@ -1,0 +1,14 @@
+~/workspace$ pnpm hardhat compile --show-stack-traces
+Error HH404: File @openzeppelin/contracts/utils/Counters.sol, imported from contracts/Trala.sol, not found.
+
+HardhatError: HH404: File @openzeppelin/contracts/utils/Counters.sol, imported from contracts/Trala.sol, not found.
+    at Resolver.resolveImport (/home/runner/workspace/node_modules/.pnpm/hardhat@2.22.14_ts-node@10.9.2_@types+node@22.7.9_typescript@5.6.3__typescript@5.6.3/node_modules/hardhat/src/internal/solidity/resolver.ts:221:17)
+    at async /home/runner/workspace/node_modules/.pnpm/hardhat@2.22.14_ts-node@10.9.2_@types+node@22.7.9_typescript@5.6.3__typescript@5.6.3/node_modules/hardhat/src/internal/solidity/dependencyGraph.ts:188:28
+    at async Promise.all (index 5)
+    at async DependencyGraph._addDependenciesFrom (/home/runner/workspace/node_modules/.pnpm/hardhat@2.22.14_ts-node@10.9.2_@types+node@22.7.9_typescript@5.6.3__typescript@5.6.3/node_modules/hardhat/src/internal/solidity/dependencyGraph.ts:186:5)
+    at async Promise.all (index 4)
+    at async Function.createFromResolvedFiles (/home/runner/workspace/node_modules/.pnpm/hardhat@2.22.14_ts-node@10.9.2_@types+node@22.7.9_typescript@5.6.3__typescript@5.6.3/node_modules/hardhat/src/internal/solidity/dependencyGraph.ts:15:5)
+    at async Environment._runTaskDefinition (/home/runner/workspace/node_modules/.pnpm/hardhat@2.22.14_ts-node@10.9.2_@types+node@22.7.9_typescript@5.6.3__typescript@5.6.3/node_modules/hardhat/src/internal/core/runtime-environment.ts:351:14)
+    at async Environment.run (/home/runner/workspace/node_modules/.pnpm/hardhat@2.22.14_ts-node@10.9.2_@types+node@22.7.9_typescript@5.6.3__typescript@5.6.3/node_modules/hardhat/src/internal/core/runtime-environment.ts:184:14)
+    at async SimpleTaskDefinition.action (/home/runner/workspace/node_modules/.pnpm/hardhat@2.22.14_ts-node@10.9.2_@types+node@22.7.9_typescript@5.6.3__typescript@5.6.3/node_modules/hardhat/src/builtin-tasks/compile.ts:1389:58)
+    at async Environment._runTaskDefinition (/home/runner/workspace/node_modules/.pnpm/hardhat@2.22.14_ts-node@10.9.2_@types+node@22.7.9_typescript@5.6.3__typescript@5.6.3/node_modules/hardhat/src/internal/core/runtime-environment.ts:351:14)
