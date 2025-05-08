@@ -40,7 +40,11 @@ const config: HardhatUserConfig = {
       url: 'https://mainnet-rpc.b3.fun',
       accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
       chainId: 8333,
-
+    },
+    sonemium: {
+      url: 'https://rpc.soneium.org/',
+      accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
+      chainId: 1868,
     }
   },
   etherscan: {
@@ -48,7 +52,8 @@ const config: HardhatUserConfig = {
       mainnet: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
       sepolia: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
       polygon: process.env.POLYGON_ETHERSCAN!,
-      b3:'as'
+      b3:'as',
+      sonemium:'as',
     },
     customChains: [
       {
@@ -57,6 +62,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://explorer.b3.fun/api",
           browserURL: "https://explorer.b3.fun",
+        },
+      },
+      {
+        network: "sonemium",
+        chainId: 1868,
+        urls: {
+          apiURL: "https://soneium.blockscout.com/api",
+          browserURL: "https://soneium.blockscout.com/",
         },
       },
     ]
