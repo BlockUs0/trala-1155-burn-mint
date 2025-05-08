@@ -5,7 +5,15 @@ import "@nomicfoundation/hardhat-ledger";
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.27",
+  solidity: {
+    version: "0.8.27",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1 
+      }
+    }
+  },
   defaultNetwork: "sepolia",
   networks: {
     hardhat: {
@@ -39,7 +47,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
       sepolia: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
-      polygon: process.env.POLYGON_ETHERSCAN,
+      polygon: process.env.POLYGON_ETHERSCAN!,
       b3:'as'
     },
     customChains: [

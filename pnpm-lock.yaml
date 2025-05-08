@@ -32,7 +32,7 @@ importers:
         version: 1.0.12(hardhat@2.22.14(ts-node@10.9.2(@types/node@22.7.9)(typescript@5.6.3))(typescript@5.6.3))
       '@nomicfoundation/hardhat-toolbox':
         specifier: ^5.0.0
-        version: 5.0.0(pkt2cgpaxroegjkjkordo3gwf4)
+        version: 5.0.0(6dba31e74527af9c3eb214ebc93bbe96)
       '@nomicfoundation/hardhat-verify':
         specifier: ^2.0.0
         version: 2.0.11(hardhat@2.22.14(ts-node@10.9.2(@types/node@22.7.9)(typescript@5.6.3))(typescript@5.6.3))
@@ -219,8 +219,8 @@ packages:
   '@ledgerhq/devices@8.4.4':
     resolution: {integrity: sha512-sz/ryhe/R687RHtevIE9RlKaV8kkKykUV4k29e7GAVwzHX1gqG+O75cu1NCJUHLbp3eABV5FdvZejqRUlLis9A==}
 
-  '@ledgerhq/domain-service@1.2.27':
-    resolution: {integrity: sha512-BQgroMkCeXZvP1XNUp3Wf+LnInZNbqz4twq6O6MnmcfoUzZWegVcqiZdWcUsUUZQEeJ2EjX/71Zb1gRmwXMttg==}
+  '@ledgerhq/domain-service@1.2.28':
+    resolution: {integrity: sha512-coeiCO6u1VK/1NYScab3qvYrsbpxPrWjk0sbl45vTaUnseNEH13kyo8gL3GxcTerg4UTC+U0wSU6HJ9+eOyk5A==}
 
   '@ledgerhq/errors@6.19.1':
     resolution: {integrity: sha512-75yK7Nnit/Gp7gdrJAz0ipp31CCgncRp+evWt6QawQEtQKYEDfGo10QywgrrBBixeRxwnMy1DP6g2oCWRf1bjw==}
@@ -243,8 +243,8 @@ packages:
   '@ledgerhq/logs@6.12.0':
     resolution: {integrity: sha512-ExDoj1QV5eC6TEbMdLUMMk9cfvNKhhv5gXol4SmULRVCx/3iyCPhJ74nsb3S0Vb+/f+XujBEj3vQn5+cwS0fNA==}
 
-  '@ledgerhq/types-live@6.68.0':
-    resolution: {integrity: sha512-6vfIPYtqmuv1UHzL1Fw63O8UagtpEMfhiTNUzzeTrnOTkCKxirMjZFlId0qX9vO21Lo+03HdGdIY5QT/4mazLw==}
+  '@ledgerhq/types-live@6.69.0':
+    resolution: {integrity: sha512-Xi7C0vRE1RVFyKtJKHZpzYXBNh3fDz0M/Yl3lWLFQ7sOdSui+wuR/VcNmT7Z1c6ngy492RPRQL+iel2MVKrR/Q==}
 
   '@metamask/eth-sig-util@4.0.1':
     resolution: {integrity: sha512-tghyZKLHZjcdlDqCA3gNZmLeR0XvOE9U1qoQO9ohyAZT6Pya+H9vkBPcsyXytmYLNgVoin7CKCmweo/R43V+tQ==}
@@ -1626,8 +1626,8 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  node-abi@3.74.0:
-    resolution: {integrity: sha512-c5XK0MjkGBrQPGYG24GBADZud0NCbznxNx0ZkS+ebUTrmV1qTDxPxSL8zEAPURXSbLRWVexxmP4986BziahL5w==}
+  node-abi@3.75.0:
+    resolution: {integrity: sha512-OhYaY5sDsIka7H7AtijtI9jwGYLyl29eQn/W623DiN/MIv5sUqc4g7BIDThX+gb7di9f6xK02nkp8sdfFWZLTg==}
     engines: {node: '>=10'}
 
   node-addon-api@2.0.2:
@@ -2638,11 +2638,11 @@ snapshots:
       rxjs: 7.8.2
       semver: 7.6.3
 
-  '@ledgerhq/domain-service@1.2.27(debug@4.3.7)':
+  '@ledgerhq/domain-service@1.2.28(debug@4.3.7)':
     dependencies:
       '@ledgerhq/errors': 6.19.1
       '@ledgerhq/logs': 6.12.0
-      '@ledgerhq/types-live': 6.68.0
+      '@ledgerhq/types-live': 6.69.0
       axios: 1.7.7(debug@4.3.7)
       eip55: 2.1.1
       react: 18.3.1
@@ -2657,7 +2657,7 @@ snapshots:
       '@ethersproject/abi': 5.7.0
       '@ethersproject/rlp': 5.7.0
       '@ledgerhq/cryptoassets': 9.13.0
-      '@ledgerhq/domain-service': 1.2.27(debug@4.3.7)
+      '@ledgerhq/domain-service': 1.2.28(debug@4.3.7)
       '@ledgerhq/errors': 6.19.1
       '@ledgerhq/hw-transport': 6.31.4
       '@ledgerhq/hw-transport-mocker': 6.29.4
@@ -2702,7 +2702,7 @@ snapshots:
 
   '@ledgerhq/logs@6.12.0': {}
 
-  '@ledgerhq/types-live@6.68.0':
+  '@ledgerhq/types-live@6.69.0':
     dependencies:
       bignumber.js: 9.3.0
       rxjs: 7.8.2
@@ -2858,7 +2858,7 @@ snapshots:
       ethereumjs-util: 7.1.5
       hardhat: 2.22.14(ts-node@10.9.2(@types/node@22.7.9)(typescript@5.6.3))(typescript@5.6.3)
 
-  '@nomicfoundation/hardhat-toolbox@5.0.0(pkt2cgpaxroegjkjkordo3gwf4)':
+  '@nomicfoundation/hardhat-toolbox@5.0.0(6dba31e74527af9c3eb214ebc93bbe96)':
     dependencies:
       '@nomicfoundation/hardhat-chai-matchers': 2.0.8(@nomicfoundation/hardhat-ethers@3.0.8(ethers@6.13.4)(hardhat@2.22.14(ts-node@10.9.2(@types/node@22.7.9)(typescript@5.6.3))(typescript@5.6.3)))(chai@4.5.0)(ethers@6.13.4)(hardhat@2.22.14(ts-node@10.9.2(@types/node@22.7.9)(typescript@5.6.3))(typescript@5.6.3))
       '@nomicfoundation/hardhat-ethers': 3.0.8(ethers@6.13.4)(hardhat@2.22.14(ts-node@10.9.2(@types/node@22.7.9)(typescript@5.6.3))(typescript@5.6.3))
@@ -4294,7 +4294,7 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  node-abi@3.74.0:
+  node-abi@3.75.0:
     dependencies:
       semver: 7.6.3
 
@@ -4426,7 +4426,7 @@ snapshots:
       minimist: 1.2.8
       mkdirp-classic: 0.5.3
       napi-build-utils: 2.0.0
-      node-abi: 3.74.0
+      node-abi: 3.75.0
       pump: 3.0.2
       rc: 1.2.8
       simple-get: 4.0.1
