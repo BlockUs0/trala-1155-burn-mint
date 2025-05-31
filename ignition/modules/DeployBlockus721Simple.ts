@@ -11,7 +11,7 @@ const DeployBlockus721SimpleModule = buildModule("DeployBlockus721SimpleModule",
   
   // Default addresses - these should be replaced with actual addresses in production
   const initialOwner = m.getParameter("initialOwner", "0xFB712f6712E701dc09F50E6373F230780a84eD7b");
-  const trustedForwarder = m.getParameter("trustedForwarder", "0xFB712f6712E701dc09F50E6373F230780a84eD7b");
+  const trustedForwarder = m.getParameter("trustedForwarder", "0x593b7bdafe274a16bbf9ea266367829b38bafc96");
   
   // Default to soulbound tokens
   const isSoulbound = m.getParameter("isSoulbound", true);
