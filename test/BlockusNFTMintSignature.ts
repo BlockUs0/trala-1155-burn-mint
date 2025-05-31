@@ -1,18 +1,18 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import hre, { ethers } from "hardhat";
-import { TralaNFT } from "../typechain-types";
+import { BlockusNFT } from "../typechain-types";
 
-describe("TralaNFT Signature Minting", function () {
-  async function deployTralaNFTFixture() {
-    const name = "Trala NFT";
-    const symbol = "TRALA";
-    const baseURI = "https://api.trala.com/metadata/";
+describe("BlockusNFT Signature Minting", function () {
+  async function deployBlockusNFTFixture() {
+    const name = "Blockus NFT";
+    const symbol = "BLOCKUS";
+    const baseURI = "https://api.blockus.com/metadata/";
     const [owner, signer, minter] = await hre.ethers.getSigners();
     const authority = "0x67C9Ce97D99cCb55B58Fc5502C3dE426101095Af";
 
-    const TralaNFT = await hre.ethers.getContractFactory("TralaNFT");
-    const nft: TralaNFT = await TralaNFT.deploy(
+    const BlockusNFT = await hre.ethers.getContractFactory("BlockusNFT");
+    const nft: BlockusNFT = await BlockusNFT.deploy(
       name,
       symbol,
       baseURI,
@@ -38,7 +38,7 @@ describe("TralaNFT Signature Minting", function () {
 
   describe("Signature Verification", function () {
     it.skip("Should mint with valid API signature", async function () {
-      const { nft, minter, tokenId } = await loadFixture(deployTralaNFTFixture);
+      const { nft, minter, tokenId } = await loadFixture(deployBlockusNFTFixture);
 
       // Get contract address for API signature generation
       const contractAddress = await nft.getAddress();
@@ -62,13 +62,13 @@ describe("TralaNFT Signature Minting", function () {
           { value: ethers.parseEther("0.1") },
         ),
       )
-        .to.emit(nft, "TokenMinted")
+        .to.emit(nft, "BlockusNFTMinted")
         .withArgs(minter.address, tokenId, 1);
     });
 
     it("Should generate and verify signature manually", async function () {
       const { nft, signer, minter, tokenId } = await loadFixture(
-        deployTralaNFTFixture,
+        deployBlockusNFTFixture,
       );
 
       const domain = await nft.eip712Domain();
@@ -122,7 +122,7 @@ describe("TralaNFT Signature Minting", function () {
           value: ethers.parseEther("0.1"),
         }),
       )
-        .to.emit(nft, "TokenMinted")
+        .to.emit(nft, "BlockusNFTMinted")
         .withArgs(minter.address, tokenId, 1);
     });
   });

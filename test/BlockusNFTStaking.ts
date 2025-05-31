@@ -2,18 +2,18 @@ import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-help
 import { expect } from "chai";
 import hre from "hardhat";
 
-describe("TralaNFTStaking", function () {
+describe("BlockusNFTStaking", function () {
   // Fixture to deploy contracts for testing
   async function deployStakingFixture() {
     const [owner, admin, user] = await hre.ethers.getSigners();
 
-    // Deploy TralaNFT contract
-    const name = "Trala NFT";
-    const symbol = "TRALA";
-    const baseURI = "https://api.trala.com/metadata/";
+    // Deploy BlockusNFT contract
+    const name = "Blockus NFT";
+    const symbol = "BLOCKUS";
+    const baseURI = "https://api.blockus.com/metadata/";
     
-    const TralaNFTFactory = await hre.ethers.getContractFactory("TralaNFT");
-    const tralaNFT = await TralaNFTFactory.deploy(
+    const BlockusNFTFactory = await hre.ethers.getContractFactory("BlockusNFT");
+    const blockusNFT = await BlockusNFTFactory.deploy(
       name,
       symbol,
       baseURI,
@@ -23,7 +23,7 @@ describe("TralaNFTStaking", function () {
 
     // Configure a token for testing
     const tokenId = 1;
-    await tralaNFT.configureToken(
+    await blockusNFT.configureToken(
       tokenId,
       "Test Token",
       1000n, // maxSupply
@@ -34,19 +34,19 @@ describe("TralaNFTStaking", function () {
     );
 
     // Deploy staking contract
-    const TralaNFTStakingFactory = await hre.ethers.getContractFactory("TralaNFTStaking");
-    const staking = await TralaNFTStakingFactory.deploy(
-      await tralaNFT.getAddress(),
+    const BlockusNFTStakingFactory = await hre.ethers.getContractFactory("BlockusNFTStaking");
+    const staking = await BlockusNFTStakingFactory.deploy(
+      await blockusNFT.getAddress(),
       admin.address // Admin is now the owner
     );
 
-    return { staking, tralaNFT, owner, admin, user, tokenId };
+    return { staking, blockusNFT, owner, admin, user, tokenId };
   }
 
   describe("Deployment", function () {
     it("Should set the right NFT contract address", async function () {
-      const { staking, tralaNFT } = await loadFixture(deployStakingFixture);
-      expect(await staking.nftContract()).to.equal(await tralaNFT.getAddress());
+      const { staking, blockusNFT } = await loadFixture(deployStakingFixture);
+      expect(await staking.nftContract()).to.equal(await blockusNFT.getAddress());
     });
 
     it("Should set the right owner", async function () {
@@ -62,14 +62,14 @@ describe("TralaNFTStaking", function () {
 
   describe("Staking", function () {
     it("Should allow staking tokens", async function () {
-      const { staking, tralaNFT, user, tokenId, owner } = await loadFixture(deployStakingFixture);
+      const { staking, blockusNFT, user, tokenId, owner } = await loadFixture(deployStakingFixture);
       const amount = 5;
 
       // Mint tokens to user
-      await tralaNFT.connect(owner).mint(user.address, tokenId, amount, "0x");
+      await blockusNFT.connect(owner).mint(user.address, tokenId, amount, "0x");
 
       // Approve staking contract
-      await tralaNFT.connect(user).setApprovalForAll(await staking.getAddress(), true);
+      await blockusNFT.connect(user).setApprovalForAll(await staking.getAddress(), true);
 
       // Stake tokens and check for event
       const stakeTx = await staking.connect(user).stake(tokenId, amount);
@@ -81,7 +81,7 @@ describe("TralaNFTStaking", function () {
       expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(amount);
       
       // Check NFT balance of staking contract
-      expect(await tralaNFT.balanceOf(await staking.getAddress(), tokenId)).to.equal(amount);
+      expect(await blockusNFT.balanceOf(await staking.getAddress(), tokenId)).to.equal(amount);
       
       // Verify TokenStaked event was emitted with correct parameters
       await expect(stakeTx)
@@ -90,14 +90,14 @@ describe("TralaNFTStaking", function () {
     });
 
     it("Should allow unstaking tokens", async function () {
-      const { staking, tralaNFT, user, tokenId, owner } = await loadFixture(deployStakingFixture);
+      const { staking, blockusNFT, user, tokenId, owner } = await loadFixture(deployStakingFixture);
       const amount = 5;
 
       // Mint tokens to user
-      await tralaNFT.connect(owner).mint(user.address, tokenId, amount, "0x");
+      await blockusNFT.connect(owner).mint(user.address, tokenId, amount, "0x");
 
       // Approve staking contract
-      await tralaNFT.connect(user).setApprovalForAll(await staking.getAddress(), true);
+      await blockusNFT.connect(user).setApprovalForAll(await staking.getAddress(), true);
 
       // Stake tokens
       await staking.connect(user).stake(tokenId, amount);
@@ -115,7 +115,7 @@ describe("TralaNFTStaking", function () {
       expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(0);
       
       // Check NFT returned to user
-      expect(await tralaNFT.balanceOf(user.address, tokenId)).to.equal(amount);
+      expect(await blockusNFT.balanceOf(user.address, tokenId)).to.equal(amount);
       
       // Verify TokenUnstaked event was emitted with correct parameters
       await expect(unstakeTx)
@@ -138,14 +138,14 @@ describe("TralaNFTStaking", function () {
     });
 
     it("Should allow owner to emergency unstake", async function () {
-      const { staking, tralaNFT, user, tokenId, owner, admin } = await loadFixture(deployStakingFixture);
+      const { staking, blockusNFT, user, tokenId, owner, admin } = await loadFixture(deployStakingFixture);
       const amount = 5;
 
       // Mint tokens to user
-      await tralaNFT.connect(owner).mint(user.address, tokenId, amount, "0x");
+      await blockusNFT.connect(owner).mint(user.address, tokenId, amount, "0x");
 
       // Approve staking contract
-      await tralaNFT.connect(user).setApprovalForAll(await staking.getAddress(), true);
+      await blockusNFT.connect(user).setApprovalForAll(await staking.getAddress(), true);
 
       // Stake tokens
       await staking.connect(user).stake(tokenId, amount);
@@ -160,7 +160,7 @@ describe("TralaNFTStaking", function () {
       expect(await staking.getStakedAmount(user.address, tokenId)).to.equal(0);
       
       // Check NFT returned to user
-      expect(await tralaNFT.balanceOf(user.address, tokenId)).to.equal(amount);
+      expect(await blockusNFT.balanceOf(user.address, tokenId)).to.equal(amount);
     });
     
     it("Should revert when non-owner tries to pause", async function () {
@@ -176,12 +176,12 @@ describe("TralaNFTStaking", function () {
     it("Should allow owner to update NFT address", async function () {
       const { staking, admin, owner } = await loadFixture(deployStakingFixture);
       
-      // Deploy a new TralaNFT contract to use as the new address
-      const newNftFactory = await hre.ethers.getContractFactory("TralaNFT");
+      // Deploy a new BlockusNFT contract to use as the new address
+      const newNftFactory = await hre.ethers.getContractFactory("BlockusNFT");
       const newNft = await newNftFactory.deploy(
-        "New Trala NFT",
-        "NTRALA",
-        "https://api.trala.com/new-metadata/",
+        "New Blockus NFT",
+        "BNFT",
+        "https://api.blockus.com/new-metadata/",
         owner.address, // treasury
         owner.address  // signer
       );
@@ -203,10 +203,10 @@ describe("TralaNFTStaking", function () {
     });
     
     it("Should revert when non-owner tries to update NFT address", async function () {
-      const { staking, tralaNFT, user } = await loadFixture(deployStakingFixture);
+      const { staking, blockusNFT, user } = await loadFixture(deployStakingFixture);
       
       // Try to update NFT address as non-owner
-      await expect(staking.connect(user).updateNftAddress(await tralaNFT.getAddress()))
+      await expect(staking.connect(user).updateNftAddress(await blockusNFT.getAddress()))
         .to.be.revertedWithCustomError(staking, "OwnableUnauthorizedAccount")
         .withArgs(user.address);
     });

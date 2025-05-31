@@ -1,8 +1,8 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-const DeployTralaModule = buildModule("DeployTralaModule", (m) => {
-  const name = m.getParameter("name", "Trala Arcade");
-  const symbol = m.getParameter("symbol", "TRALA");
+const DeployBlockusNFTModule = buildModule("DeployBlockusNFTModule", (m) => {
+  const name = m.getParameter("name", "Blockus NFT");
+  const symbol = m.getParameter("symbol", "BLOCKUS");
   const baseURI = m.getParameter(
     "baseURI",
     "https://teal-genuine-cardinal-120.mypinata.cloud/ipfs/bafybeihavthaotmgpb3btvmvzvh2nbweuxowqkqdnn3gsfcnhl4kg7tz7q/{id}.json"
@@ -15,7 +15,7 @@ const DeployTralaModule = buildModule("DeployTralaModule", (m) => {
     initialTreasury,
     initialAdmin,
   });
-  const tralaNFT = m.contract("TralaNFT", [
+  const blockusNFT = m.contract("BlockusNFT", [
     name,
     symbol,
     baseURI,
@@ -24,9 +24,9 @@ const DeployTralaModule = buildModule("DeployTralaModule", (m) => {
   ]);
 
   // Configure initial test token
-  m.call(tralaNFT, "configureToken", [
+  m.call(blockusNFT, "configureToken", [
     1, // tokenId
-    "Trala Arcade B Grade", // name
+    "Blockus NFT Grade B", // name
     0, // maxSupply (unlimited)
     0, // price
     false, // allowlistRequired
@@ -34,7 +34,7 @@ const DeployTralaModule = buildModule("DeployTralaModule", (m) => {
     false, // soulbound
   ]);
 
-  return { tralaNFT };
+  return { blockusNFT };
 });
 
-export default DeployTralaModule;
+export default DeployBlockusNFTModule;

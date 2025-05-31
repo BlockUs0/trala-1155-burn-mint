@@ -1,12 +1,12 @@
-# Trala NFT and Staking Contracts
+# Blockus NFT and Staking Contracts
 
-This repository contains the smart contracts for the Trala platform's NFT and staking system.
+This repository contains the smart contracts for the Blockus platform's NFT and staking system.
 
 ## Contracts
 
-### TralaNFT (ERC1155)
+### BlockusNFT (ERC1155)
 
-The `TralaNFT.sol` contract implements an ERC1155 token with the following features:
+The `BlockusNFT.sol` contract implements an ERC1155 token with the following features:
 
 *   **Configurable Token Grades:** Supports multiple token types (grades) with customizable parameters such as name, maximum supply, price, allowlist requirement, active status, and soulbound property.
 *   **EIP-712 Allowlist Minting:** Allows minting of tokens, with an option to require an EIP-712 signature for allowlist authorization.
@@ -16,28 +16,28 @@ The `TralaNFT.sol` contract implements an ERC1155 token with the following featu
 *   **Fund Withdrawal:** The TREASURY role can withdraw collected funds.
 *   **Soulbound Tokens:** Supports creating soulbound tokens that are non-transferable.
 
-### TralaNFTStaking (ERC1155Holder)
+### BlockusNFTStaking (ERC1155Holder)
 
-The `TralaNFTStaking.sol` contract allows users to stake and unstake ERC1155 tokens from the `TralaNFT` contract.
+The `BlockusNFTStaking.sol` contract allows users to stake and unstake ERC1155 tokens from the `BlockusNFT` contract.
 
 *   **Staking:** Users can stake specified amounts of their ERC1155 tokens.
 *   **Unstaking:** Users can unstake their previously staked tokens.
 *   **Pausable:** Staking and unstaking can be paused and unpaused by the owner.
 *   **Emergency Unstake:** The owner can perform an emergency unstake for a specific user and token.
-*   **NFT Contract Address Update:** The owner can update the address of the `TralaNFT` contract.
+*   **NFT Contract Address Update:** The owner can update the address of the `BlockusNFT` contract.
 
 ## Deployment
 
 The project uses Hardhat Ignition for deployments. The deployment modules are located in `ignition/modules/`.
 
-*   `DeployTrala.ts`: Deploys the `TralaNFT` contract.
-*   `DeployTralaStaking.ts`: Deploys the `TralaNFTStaking` contract, depending on the `TralaNFT` deployment.
+*   `DeployBlockusNFT.ts`: Deploys the `BlockusNFT` contract.
+*   `DeployBlockusNFTStaking.ts`: Deploys the `BlockusNFTStaking` contract, depending on the `BlockusNFT` deployment.
 
 To deploy the contracts using Hardhat Ignition, you typically run commands like:
 
 ```bash
-npx hardhat ignition deploy ignition/modules/DeployTrala.ts --network <your-network>
-npx hardhat ignition deploy ignition/modules/DeployTralaStaking.ts --network <your-network>
+npx hardhat ignition deploy ignition/modules/DeployBlockusNFT.ts --network <your-network>
+npx hardhat ignition deploy ignition/modules/DeployBlockusNFTStaking.ts --network <your-network>
 ```
 
 Replace `<your-network>` with the desired network (e.g., `sepolia`, `polygon`).
@@ -64,9 +64,9 @@ POLYGONSCAN_API_KEY=your_polygonscan_api_key # For contract verification
 
 Tests for the contracts are located in the `test/` directory.
 
-*   `Trala.ts`: Tests for the `TralaNFT` contract.
-*   `TralaStaking.ts`: Tests for the `TralaNFTStaking` contract.
-*   `TralaMintSignature.ts`: Tests specifically for the EIP-712 minting signature verification.
+*   `BlockusNFT.ts`: Tests for the `BlockusNFT` contract.
+*   `BlockusNFTStaking.ts`: Tests for the `BlockusNFTStaking` contract.
+*   `BlockusNFTMintSignature.ts`: Tests specifically for the EIP-712 minting signature verification.
 
 To run tests:
 

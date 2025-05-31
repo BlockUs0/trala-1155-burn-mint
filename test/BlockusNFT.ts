@@ -1,21 +1,21 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import hre, { ethers } from "hardhat";
-import { TralaNFT } from "../typechain-types";
+import { BlockusNFT } from "../typechain-types";
 
-describe("TralaNFT", function () {
+describe("BlockusNFT", function () {
   // Fixture to reuse the same setup in every test
-  async function deployTralaNFTFixture() {
-    const name = "Trala NFT";
-    const symbol = "TRALA";
-    const baseURI = "https://api.trala.com/metadata/";
+  async function deployBlockusNFTFixture() {
+    const name = "Blockus NFT";
+    const symbol = "BLOCKUS";
+    const baseURI = "https://api.blockus.com/metadata/";
 
     // Get signers
     const [owner, admin, signer, otherAccount] = await hre.ethers.getSigners();
 
     // Deploy the contract
-    const TralaNFT = await hre.ethers.getContractFactory("TralaNFT");
-    const nft: TralaNFT = await TralaNFT.deploy(
+    const BlockusNFT = await hre.ethers.getContractFactory("BlockusNFT");
+    const nft: BlockusNFT = await BlockusNFT.deploy(
       name,
       symbol,
       baseURI,
@@ -28,13 +28,13 @@ describe("TralaNFT", function () {
 
   describe("Deployment", function () {
     it("Should set the right name and symbol", async function () {
-      const { nft, name, symbol } = await loadFixture(deployTralaNFTFixture);
+      const { nft, name, symbol } = await loadFixture(deployBlockusNFTFixture);
       expect(await nft.name()).to.equal(name);
       expect(await nft.symbol()).to.equal(symbol);
     });
 
     it("Should set the right roles", async function () {
-      const { nft, owner, signer } = await loadFixture(deployTralaNFTFixture);
+      const { nft, owner, signer } = await loadFixture(deployBlockusNFTFixture);
 
       const ADMIN_ROLE = await nft.ADMIN_ROLE();
       const SIGNER_ROLE = await nft.SIGNER_ROLE();
@@ -46,14 +46,14 @@ describe("TralaNFT", function () {
     });
 
     it("Should start unpaused", async function () {
-      const { nft } = await loadFixture(deployTralaNFTFixture);
+      const { nft } = await loadFixture(deployBlockusNFTFixture);
       expect(await nft.paused()).to.be.false;
     });
   });
 
   describe("Token Configuration", function () {
     it("Should allow admin to configure a new token", async function () {
-      const { nft, admin, owner } = await loadFixture(deployTralaNFTFixture);
+      const { nft, admin, owner } = await loadFixture(deployBlockusNFTFixture);
 
       const tokenId = 1;
       const tokenConfig = {
@@ -78,7 +78,7 @@ describe("TralaNFT", function () {
             tokenConfig.soulbound,
           ),
       )
-        .to.emit(nft, "TokenConfigured")
+        .to.emit(nft, "BlockusNFTConfigured")
         .withArgs(
           tokenId,
           tokenConfig.name,
@@ -102,7 +102,7 @@ describe("TralaNFT", function () {
   describe("Minting", function () {
     it("Should allow public minting when allowlist is not required", async function () {
       const { nft, admin, otherAccount, owner } = await loadFixture(
-        deployTralaNFTFixture,
+        deployBlockusNFTFixture,
       );
 
       const tokenId = 1;
@@ -122,16 +122,16 @@ describe("TralaNFT", function () {
           .mint(otherAccount.address, tokenId, 1, "0x", {
             value: ethers.parseEther("0.1"),
           }),
-      )
-        .to.emit(nft, "TokenMinted")
-        .withArgs(otherAccount.address, tokenId, 1);
+    )
+      .to.emit(nft, "BlockusNFTMinted")
+      .withArgs(otherAccount.address, tokenId, 1);
 
       expect(await nft.balanceOf(otherAccount.address, tokenId)).to.equal(1n);
     });
 
     it("Should revert when token is not active", async function () {
       const { nft, admin, otherAccount, owner } = await loadFixture(
-        deployTralaNFTFixture,
+        deployBlockusNFTFixture,
       );
 
       const tokenId = 1;
@@ -158,7 +158,7 @@ describe("TralaNFT", function () {
 
     it("Should revert when payment is insufficient", async function () {
       const { nft, admin, owner ,otherAccount } = await loadFixture(
-        deployTralaNFTFixture,
+        deployBlockusNFTFixture,
       );
 
       const tokenId = 1;
@@ -179,7 +179,7 @@ describe("TralaNFT", function () {
 
     it("Should revert when exceeding max supply", async function () {
       const { nft, admin, otherAccount, owner } = await loadFixture(
-        deployTralaNFTFixture,
+        deployBlockusNFTFixture,
       );
 
       const tokenId = 1;
@@ -217,7 +217,7 @@ describe("TralaNFT", function () {
 
     it("Should revert when signature is required but not provided", async function () {
       const { nft, admin, owner, otherAccount } = await loadFixture(
-        deployTralaNFTFixture,
+        deployBlockusNFTFixture,
       );
 
       const tokenId = 1;
@@ -244,7 +244,7 @@ describe("TralaNFT", function () {
 
     it("Should revert when trying to transfer soulbound token", async function () {
       const { nft, admin, otherAccount, owner } = await loadFixture(
-        deployTralaNFTFixture,
+        deployBlockusNFTFixture,
       );
 
       const tokenId = 1;
@@ -284,7 +284,7 @@ describe("TralaNFT", function () {
 
   describe("Admin Functions", function () {
     it("Should allow admin to pause and unpause", async function () {
-      const { nft, admin, owner } = await loadFixture(deployTralaNFTFixture);
+      const { nft, admin, owner } = await loadFixture(deployBlockusNFTFixture);
 
       await expect(nft.connect(owner).pause())
         .to.emit(nft, "Paused")
@@ -301,7 +301,7 @@ describe("TralaNFT", function () {
 
     it("Should allow treasury role to withdraw funds", async function () {
       const { nft, owner, otherAccount, admin } = await loadFixture(
-        deployTralaNFTFixture,
+        deployBlockusNFTFixture,
       );
 
       // Configure and mint a token to generate funds
@@ -334,7 +334,7 @@ describe("TralaNFT", function () {
 
     it("Should not allow non-treasury role to withdraw funds", async function () {
       const { nft, admin, otherAccount, owner } = await loadFixture(
-        deployTralaNFTFixture,
+        deployBlockusNFTFixture,
       );
 
       // Configure and mint a token to generate funds
@@ -366,7 +366,7 @@ describe("TralaNFT", function () {
     });
 
     it("Should revert when trying to withdraw with no funds", async function () {
-      const { nft, owner } = await loadFixture(deployTralaNFTFixture);
+      const { nft, owner } = await loadFixture(deployBlockusNFTFixture);
 
       await expect(nft.connect(owner).withdraw()).to.be.revertedWithCustomError(
         nft,
@@ -377,7 +377,7 @@ describe("TralaNFT", function () {
 
   describe("EIP712 Domain", function () {
     it("Should have correct EIP712 domain parameters", async function () {
-      const { nft, name } = await loadFixture(deployTralaNFTFixture);
+      const { nft, name } = await loadFixture(deployBlockusNFTFixture);
 
       const domain = await nft.eip712Domain();
       console.log({ domain })

@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-contract TralaNFTStaking is ERC1155Holder, Ownable, Pausable, ReentrancyGuard {
+contract BlockusNFTStaking is ERC1155Holder, Ownable, Pausable, ReentrancyGuard {
     // Custom Errors
     error ZeroAmount();
     error ZeroAddress();
