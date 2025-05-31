@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy-trala": "npx hardhat ignition deploy ignition/modules/DeployTrala.ts --network mainnet",
-    "mint-trala": "npx hardhat run scripts/trala-mint-nft.ts --network mainnet"
+    "deploy-blockus-nft": "npx hardhat ignition deploy ignition/modules/DeployBlockus721Simple.ts --network "
   },
   "keywords": [],
   "author": "",
