@@ -11,11 +11,11 @@ import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
- * @title TralaNFT
- * @dev Implementation of the Trala Platform NFT system with multiple token grades
+ * @title BlockusNFT
+ * @dev Implementation of the Blockus Platform NFT system with multiple token grades
  * and configurable parameters for each grade.
  */
-contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pausable, ReentrancyGuard, EIP712 {
+contract BlockusNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pausable, ReentrancyGuard, EIP712 {
     // Custom errors
     error TokenNotActive(uint256 tokenId);
     error InsufficientPayment(uint256 required, uint256 sent);
@@ -61,9 +61,9 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
     mapping(address => uint256) private _nonces;
 
     // Events
-    event TokenConfigured(uint256 indexed tokenId, string name, uint256 maxSupply, uint256 price, bool allowlistRequired, bool active, bool soulbound);
-    event TokenMinted(address indexed to, uint256 indexed tokenId, uint256 amount);
-    event WithdrawFunds(address indexed to, uint256 amount);
+    event BlockusNFTConfigured(uint256 indexed tokenId, string name, uint256 maxSupply, uint256 price, bool allowlistRequired, bool active, bool soulbound);
+    event BlockusNFTMinted(address indexed to, uint256 indexed tokenId, uint256 amount);
+    event BlockusFundsWithdrawal(address indexed to, uint256 amount);
 
     /**
      * @dev Constructor
@@ -79,7 +79,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
         string memory _uri,
         address _initialTreasury,
         address _initialSigner
-    ) ERC1155(_uri) EIP712(_name, "1") {
+    ) ERC1155(_uri) EIP712("Blockus NFT", "1") {
         name = _name;
         symbol = _symbol;
 
@@ -124,7 +124,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
             soulbound: _soulbound
         });
 
-        emit TokenConfigured(tokenId, _name, _maxSupply, _price, _allowlistRequired, _active, _soulbound);
+        emit BlockusNFTConfigured(tokenId, _name, _maxSupply, _price, _allowlistRequired, _active, _soulbound);
     }
 
     /**
@@ -212,7 +212,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
         // Mint tokens
         _mint(to, tokenId, amount, "");
 
-        emit TokenMinted(to, tokenId, amount);
+        emit BlockusNFTMinted(to, tokenId, amount);
     }
 
     /**
@@ -308,7 +308,7 @@ contract TralaNFT is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl, Pau
             revert WithdrawalFailed();
         }
 
-        emit WithdrawFunds(msg.sender, balance);
+        emit BlockusFundsWithdrawal(msg.sender, balance);
     }
 
     /**
