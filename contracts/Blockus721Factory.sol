@@ -24,6 +24,8 @@ contract Blockus721Factory is Ownable, Pausable, ERC2771Context {
         bool soulbound
     );
 
+    event FeeWithdrawal(address indexed recipient, uint256 amount);
+
     error InvalidBatchFee(uint256 required, uint256 provided);
     error InvalidAmount(uint256 provided);
     error BatchLimitExceeded(uint256 limit, uint256 provided);
@@ -236,6 +238,7 @@ contract Blockus721Factory is Ownable, Pausable, ERC2771Context {
         if (!success) {
             revert FeeWithdrawalFailed();
         }
+        emit FeeWithdrawal(recipient, balance);
     }
 
     function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
