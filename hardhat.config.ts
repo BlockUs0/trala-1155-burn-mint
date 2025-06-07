@@ -5,6 +5,9 @@ import "@nomicfoundation/hardhat-ledger";
 dotenv.config();
 
 const config: HardhatUserConfig = {
+  sourcify: {
+    enabled: true
+  },
   solidity: {
     version: "0.8.27",
     settings: {
@@ -45,13 +48,19 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.soneium.org/',
       accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
       chainId: 1868,
+    },
+    bsc: {
+      url: "https://bsc-dataseed.binance.org/",
+      chainId: 56,
+      accounts: [ process.env.DEPLOYER_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY! ],
     }
   },
   etherscan: {
     apiKey: {
-      mainnet: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
-      sepolia: '611UYVYDNHVR482E3987FPQ5P3G1XEMHA8',
+      mainnet: process.env.ETHERSCAN_API_KEY!,
+      sepolia: process.env.ETHERSCAN_API_KEY!,
       polygon: process.env.POLYGON_ETHERSCAN!,
+      bsc: process.env.ETHERSCAN_API_KEY!,
       b3:'as',
       sonemium:'as',
     },
