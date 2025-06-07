@@ -2,7 +2,7 @@
 import hre, { ethers } from "hardhat";
 import { readFileSync } from "fs";
 import path from "path";
-import { TralaNFT } from "../typechain-types";
+import { BlockusNFT } from "../typechain-types";
 
 async function main() {
   // Get the network and deployment info
@@ -15,22 +15,27 @@ async function main() {
   );
 
   const deployedAddresses = JSON.parse(readFileSync(deploymentPath, "utf8"));
-  const tralaNFTAddress = deployedAddresses["DeployTralaModule#TralaNFT"];
+  const blockusNFTAddress = deployedAddresses["DeployBlockus721SimpleModule#Blockus721Simple"];
+
+  console.log(blockusNFTAddress, chainId);
 
   // Get the contract instance with proper typing
-  const TralaNFT = await hre.ethers.getContractFactory("TralaNFT");
-  const nft = (await TralaNFT.attach(tralaNFTAddress)) as unknown as TralaNFT;
+  const BlockusNFT = await hre.ethers.getContractFactory("BlockusNFT");
+  const nft = (await BlockusNFT.attach(blockusNFTAddress)) as unknown as BlockusNFT;
+
+  const signer = await nft.ADMIN_ROLE
+  console.log(signer)
 
   // Example configurations
   const nftConfigs = [
     {
-      tokenId: 1,
+      tokenId: 0,
       name: "Grade A",
       maxSupply: 100n,
       price: ethers.parseEther("0"),
-      allowlistRequired: true,
+      allowlistRequired: false,
       active: true,
-      soulbound: true
+      soulbound: false
     },
     // {
     //   tokenId: 2,
@@ -46,8 +51,18 @@ async function main() {
   // Configure each NFT
   for (const config of nftConfigs) {
     console.log(`Configuring token ${config.tokenId} - ${config.name}...`);
-    
+
     try {
+      const callData = nft.interface.encodeFunctionData("configureToken", [
+        config.tokenId,
+        config.name,
+        config.maxSupply,
+        config.price,
+        config.allowlistRequired,
+        config.active,
+        config.soulbound
+      ]);
+      console.log("Raw Call Data:", callData);
       const tx = await nft.configureToken(
         config.tokenId,
         config.name,
@@ -57,10 +72,10 @@ async function main() {
         config.active,
         config.soulbound
       );
-      
+
       await tx.wait();
       console.log(`Token ${config.tokenId} configured successfully!`);
-      
+
       // Get and display the token configuration
       const tokenConfig = await nft.tokenConfigs(config.tokenId);
       console.log("Token configuration:", {
