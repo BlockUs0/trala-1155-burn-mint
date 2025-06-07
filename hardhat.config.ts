@@ -60,7 +60,7 @@ const config: HardhatUserConfig = {
       mainnet: process.env.ETHERSCAN_API_KEY!,
       sepolia: process.env.ETHERSCAN_API_KEY!,
       polygon: process.env.POLYGON_ETHERSCAN!,
-      bsc: process.env.ETHERSCAN_API_KEY!,
+      bsc:process.env.ETHERSCAN_API_KEY!,
       b3:'as',
       sonemium:'as',
     },
