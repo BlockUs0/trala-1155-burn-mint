@@ -68,8 +68,6 @@ describe("Blockus721Factory", function () {
       )
       .to.emit(factory, "ContractDeployed")
       .withArgs(user1.address, anyValue, name, symbol, isSoulbound);
-      // Further checks could involve getting the deployed contract address from the event
-      // and verifying its properties (name, symbol, owner, etc.)
     });
 
     it("Should revert if insufficient fee is sent", async function () {
@@ -116,15 +114,11 @@ describe("Blockus721Factory", function () {
         { value: totalFee }
       );
 
-      // Check that the correct number of ContractDeployed events were emitted
       const receipt = await tx.wait();
       const contractDeployedEvents = receipt?.logs.filter(
         (log: any) => log.fragment && log.fragment.name === "ContractDeployed"
       );
       expect(contractDeployedEvents?.length).to.equal(count);
-
-      // Further checks could involve verifying the number of deployed contracts
-      // and potentially checking properties of individual deployed contracts.
     });
 
     it("Should revert batch deployment if array lengths mismatch", async function () {
@@ -270,7 +264,7 @@ describe("Blockus721Factory", function () {
 
       // Withdraw fees
       await expect(factory.connect(owner).withdrawFees(owner.address))
-        .to.emit(factory, "FeeWithdrawal") // Assuming a FeeWithdrawal event exists or add one
+        .to.emit(factory, "FeeWithdrawal")
         .withArgs(owner.address, factoryBalance);
 
       const finalOwnerBalance = await ethers.provider.getBalance(owner.address);
@@ -399,7 +393,6 @@ describe("Blockus721Factory", function () {
     });
   });
 
-  // Additional tests for getDeployerContracts, getTotalDeployedContracts, getDeployedContracts
   describe("View Functions", function () {
     it("Should return contracts deployed by a specific address", async function () {
       const { factory, user1, user2, initialDeploymentFee } = await loadFixture(deployFactoryFixture);
@@ -413,8 +406,7 @@ describe("Blockus721Factory", function () {
 
       const user1Contracts = await factory.getDeployerContracts(user1.address);
       const user2Contracts = await factory.getDeployerContracts(user2.address);
-      const ownerContracts = await factory.getDeployerContracts(factory.owner()); // Owner hasn't deployed any
-
+      const ownerContracts = await factory.getDeployerContracts(factory.owner());
       expect(user1Contracts.length).to.equal(2);
       expect(user2Contracts.length).to.equal(1);
       expect(ownerContracts.length).to.equal(0);
@@ -446,7 +438,6 @@ describe("Blockus721Factory", function () {
     it("Should return a paginated list of deployed contracts", async function () {
       const { factory, user1, initialDeploymentFee } = await loadFixture(deployFactoryFixture);
 
-      // Deploy 10 contracts
       const count = 10;
       const names = Array(count).fill("Test NFT");
       const symbols = Array(count).fill("TST");
